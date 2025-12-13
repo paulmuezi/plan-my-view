@@ -4,18 +4,12 @@ import SettingsPanel from "@/components/SettingsPanel";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background">
       <Header />
       
-      {/* Main Content */}
-      <main className="pt-20 h-screen flex">
-        <div className="flex-1 p-4 flex gap-4">
-          {/* Map Area */}
-          <MapView />
-          
-          {/* Settings Panel */}
-          <SettingsPanel />
-        </div>
+      <main className="flex-1 flex pt-14">
+        <MapView />
+        <SettingsPanel />
       </main>
     </div>
   );
