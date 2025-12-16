@@ -140,7 +140,7 @@ const Home = () => {
               <div className="text-center">
                 <h3 className="text-xl font-semibold text-foreground mb-2">Lageplan</h3>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-foreground">ab 29€</span>
+                  <span className="text-4xl font-bold text-foreground">ab 10€</span>
                   <span className="text-muted-foreground ml-1">pro Plan</span>
                 </div>
                 <ul className="text-left space-y-3 mb-6">
