@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Map, PanelRightClose, PanelRight, LogOut } from "lucide-react";
+import { Map, PanelRightClose, PanelRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import MapView from "@/components/MapView";
 import SettingsPanel from "@/components/SettingsPanel";
 
 const Editor = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Header matching Home page style */}
+      {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -34,15 +34,12 @@ const Editor = () => {
               )}
             </Button>
             {user ? (
-              <>
-                <span className="text-sm text-muted-foreground hidden sm:inline">
-                  {user.name || user.email}
-                </span>
-                <Button size="sm" variant="outline" onClick={logout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Abmelden
+              <Link to="/profile">
+                <Button size="sm" variant="ghost" className="gap-2">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">{user.name || user.email}</span>
                 </Button>
-              </>
+              </Link>
             ) : (
               <Link to="/login">
                 <Button size="sm" variant="outline">Anmelden</Button>
