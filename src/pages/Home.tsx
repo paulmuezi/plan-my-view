@@ -1,15 +1,10 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Map, Search, Settings, Download, CheckCircle, ArrowRight, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Map, Search, Settings, Download, CheckCircle, ArrowRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Home = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-  };
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,15 +17,12 @@ const Home = () => {
           </Link>
           <nav className="flex items-center gap-4">
             {user ? (
-              <>
-                <span className="text-sm text-muted-foreground hidden sm:inline">
-                  {user.name || user.email}
-                </span>
-                <Button size="sm" variant="outline" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Abmelden
+              <Link to="/profile">
+                <Button size="sm" variant="ghost" className="gap-2">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">{user.name || user.email}</span>
                 </Button>
-              </>
+              </Link>
             ) : (
               <Link to="/login">
                 <Button size="sm" variant="outline">Anmelden</Button>
