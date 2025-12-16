@@ -37,7 +37,7 @@ const Home = () => {
               schnell, einfach und rechtssicher.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/editor">
+              <Link to="/login">
                 <Button size="lg" className="px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
                   Jetzt Lageplan erstellen
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -147,7 +147,7 @@ const Home = () => {
                     <span className="text-muted-foreground">Bundesweit (außer Bayern)</span>
                   </li>
                 </ul>
-                <Link to="/editor" className="block">
+                <Link to="/login" className="block">
                   <Button className="w-full py-6 text-base font-semibold">
                     Lageplan erstellen
                   </Button>
@@ -169,6 +169,7 @@ const Home = () => {
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/impressum" className="hover:text-foreground transition-colors">Impressum</Link>
               <Link to="/datenschutz" className="hover:text-foreground transition-colors">Datenschutz</Link>
+              <Link to="/agb" className="hover:text-foreground transition-colors">AGB</Link>
             </div>
             <p className="text-sm text-muted-foreground">
               © 2025 Lageplaner
