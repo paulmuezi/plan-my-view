@@ -166,9 +166,9 @@ const Home = () => {
               <Map className="w-4 h-4 text-primary" />
               <span className="font-medium text-foreground text-sm">Lageplaner</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Impressum</a>
-              <a href="#" className="hover:text-foreground transition-colors">Datenschutz</a>
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+              <Link to="/impressum" className="hover:text-foreground transition-colors">Impressum</Link>
+              <Link to="/datenschutz" className="hover:text-foreground transition-colors">Datenschutz</Link>
             </div>
             <p className="text-sm text-muted-foreground">
               © 2025 Lageplaner
