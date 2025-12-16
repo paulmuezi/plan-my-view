@@ -191,3 +191,157 @@ export const sendOrderConfirmationEmail = async (data: OrderEmailData): Promise<
     messageId: `mock-${Date.now()}`,
   };
 };
+
+// Password Reset Email
+
+export interface PasswordResetEmailData {
+  email: string;
+  resetToken: string;
+  resetUrl: string;
+  expiresAt: Date;
+}
+
+// Generate password reset email template
+export const generatePasswordResetEmail = (data: PasswordResetEmailData): { subject: string; html: string; text: string } => {
+  const subject = "Lageplaner - Passwort zurücksetzen";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f97316; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">Lageplaner</h1>
+  </div>
+  
+  <div style="background-color: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <h2 style="color: #1f2937; margin-top: 0;">Passwort zurücksetzen</h2>
+    
+    <p>Sie haben eine Anfrage zum Zurücksetzen Ihres Passworts gestellt.</p>
+    
+    <p>Klicken Sie auf den folgenden Button, um ein neues Passwort festzulegen:</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.resetUrl}" style="display: inline-block; background-color: #f97316; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+        Passwort zurücksetzen
+      </a>
+    </div>
+    
+    <p style="color: #6b7280; font-size: 14px;">
+      Oder kopieren Sie diesen Link in Ihren Browser:<br>
+      <a href="${data.resetUrl}" style="color: #f97316; word-break: break-all;">${data.resetUrl}</a>
+    </p>
+    
+    <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0; color: #92400e; font-size: 14px;">
+        <strong>Wichtig:</strong> Dieser Link ist nur 1 Stunde gültig und kann nur einmal verwendet werden.
+      </p>
+    </div>
+    
+    <p style="color: #6b7280; font-size: 14px;">
+      Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren. 
+      Ihr Passwort bleibt unverändert.
+    </p>
+    
+    <p style="margin-bottom: 0;">Mit freundlichen Grüßen,<br><strong>Ihr Lageplaner Team</strong></p>
+  </div>
+  
+  <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+    <p>Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese Nachricht.</p>
+    <p>© ${new Date().getFullYear()} Lageplaner. Alle Rechte vorbehalten.</p>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  const text = `
+Lageplaner - Passwort zurücksetzen
+
+Sie haben eine Anfrage zum Zurücksetzen Ihres Passworts gestellt.
+
+Klicken Sie auf den folgenden Link, um ein neues Passwort festzulegen:
+${data.resetUrl}
+
+Wichtig: Dieser Link ist nur 1 Stunde gültig und kann nur einmal verwendet werden.
+
+Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren.
+Ihr Passwort bleibt unverändert.
+
+Mit freundlichen Grüßen,
+Ihr Lageplaner Team
+
+---
+Diese E-Mail wurde automatisch generiert.
+© ${new Date().getFullYear()} Lageplaner. Alle Rechte vorbehalten.
+  `.trim();
+
+  return { subject, html, text };
+};
+
+// Generate a secure reset token
+export const generateResetToken = (): string => {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+};
+
+// TODO: Replace this mock implementation with real backend API call
+export const sendPasswordResetEmail = async (email: string): Promise<EmailResponse> => {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Generate mock reset token and URL
+  const resetToken = generateResetToken();
+  const resetUrl = `${window.location.origin}/reset-password?token=${resetToken}`;
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+  const emailData: PasswordResetEmailData = {
+    email,
+    resetToken,
+    resetUrl,
+    expiresAt,
+  };
+
+  const emailContent = generatePasswordResetEmail(emailData);
+
+  // Mock implementation - log email details to console
+  console.log('=== MOCK PASSWORD RESET EMAIL ===');
+  console.log('To:', email);
+  console.log('Subject:', emailContent.subject);
+  console.log('Reset URL:', resetUrl);
+  console.log('Token:', resetToken);
+  console.log('Expires:', expiresAt.toLocaleString('de-DE'));
+  console.log('================================');
+
+  // In development, always return success
+  // TODO: Replace with actual API call to backend
+  /*
+  // Example real implementation:
+  const response = await fetch('/api/password-reset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email,
+      resetToken,
+      resetUrl,
+      expiresAt: expiresAt.toISOString(),
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    return { success: false, error: error.message };
+  }
+
+  const result = await response.json();
+  return { success: true, messageId: result.messageId };
+  */
+
+  return {
+    success: true,
+    messageId: `mock-reset-${Date.now()}`,
+  };
+};
