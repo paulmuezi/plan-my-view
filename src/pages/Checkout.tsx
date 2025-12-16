@@ -66,16 +66,24 @@ const Checkout = () => {
       const emailResult = await sendOrderConfirmationEmail(emailData);
       
       if (emailResult.success) {
-        toast.success("Zahlung erfolgreich! Bestätigungs-E-Mail wurde versendet.");
         console.log("Order completed:", { orderId, emailMessageId: emailResult.messageId });
       } else {
-        // Payment succeeded but email failed - still show success
-        toast.success("Zahlung erfolgreich! Ihr Download wird vorbereitet...");
         console.warn("Email sending failed:", emailResult.error);
       }
       
-      // TODO: Navigate to success/download page
-      // navigate("/success", { state: { orderId, ...state } });
+      // Navigate to success page
+      navigate("/success", { 
+        state: { 
+          orderId, 
+          paperFormat,
+          orientation,
+          scale,
+          pdfSelected,
+          dxfSelected,
+          totalPrice,
+          customerEmail: user?.email || "kunde@example.com"
+        } 
+      });
       
     } catch (error) {
       console.error("Payment error:", error);
