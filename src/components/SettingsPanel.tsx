@@ -34,8 +34,8 @@ const SettingsPanel = () => {
   const [dxfSelected, setDxfSelected] = useState(false);
 
   const basePrice = getBasePrice(paperFormat);
-  // DXF adds +10€
-  const totalPrice = dxfSelected ? basePrice + 10 : basePrice;
+  // PDF + DXF together costs +10€ extra
+  const totalPrice = (pdfSelected && dxfSelected) ? basePrice + 10 : basePrice;
 
   const handleGeneratePreview = () => {
     if (!user) {
@@ -125,7 +125,7 @@ const SettingsPanel = () => {
                 checked={dxfSelected} 
                 onCheckedChange={(checked) => setDxfSelected(checked as boolean)}
               />
-              <label htmlFor="dxf" className="text-sm cursor-pointer">DXF (+10€)</label>
+              <label htmlFor="dxf" className="text-sm cursor-pointer">DXF</label>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ const SettingsPanel = () => {
             <span className="text-lg font-semibold text-primary">{totalPrice}€</span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {paperFormat}: {basePrice}€{dxfSelected ? ` + DXF: 10€` : ""}
+            {paperFormat}: {basePrice}€{(pdfSelected && dxfSelected) ? ` + DXF: 10€` : ""}
           </p>
         </div>
       </div>
@@ -145,11 +145,10 @@ const SettingsPanel = () => {
       <div className="p-3 border-t border-border">
         <Button 
           onClick={handleGeneratePreview} 
-          className="w-full" 
-          size="sm"
+          className="w-full py-6 text-base font-semibold" 
           disabled={!canGenerate}
         >
-          Lageplan erstellen
+          Vorschau anzeigen
         </Button>
       </div>
     </div>
