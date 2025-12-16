@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Register from "./pages/Register";
 import Checkout from "./pages/Checkout";
 import Success from "./pages/Success";
+import Profile from "./pages/Profile";
 import VerifyEmail from "./pages/VerifyEmail";
 import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/success" element={<Success />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />

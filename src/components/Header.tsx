@@ -1,4 +1,4 @@
-import { Map, LogOut } from "lucide-react";
+import { Map, LogOut, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,9 +25,12 @@ const Header = () => {
         <nav className="flex items-center gap-4">
           {user ? (
             <>
-              <span className="text-sm text-muted-foreground hidden sm:inline">
-                {user.name || user.email}
-              </span>
+              <Link to="/profile">
+                <Button size="sm" variant="ghost" className="gap-2">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">{user.name || user.email}</span>
+                </Button>
+              </Link>
               <Button size="sm" variant="outline" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Abmelden
