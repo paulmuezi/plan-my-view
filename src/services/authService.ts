@@ -51,3 +51,46 @@ export const resetPassword = async (token: string, newPassword: string): Promise
 
   return { success: true };
 };
+
+// TODO: Replace with real backend API call
+export const changePassword = async (
+  email: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<AuthResponse> => {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Mock implementation - log details to console
+  console.log("=== MOCK PASSWORD CHANGE ===");
+  console.log("Email:", email);
+  console.log("Current Password provided:", currentPassword.length > 0);
+  console.log("New Password Length:", newPassword.length);
+  console.log("============================");
+
+  // Mock validation - check if current password matches stored password
+  const MOCK_USERS_KEY = "lageplaner_mock_users";
+  const usersData = localStorage.getItem(MOCK_USERS_KEY);
+  const users: Record<string, { password: string; name: string; emailVerified: boolean }> = 
+    usersData ? JSON.parse(usersData) : {};
+
+  if (!users[email]) {
+    return {
+      success: false,
+      error: "Benutzer nicht gefunden",
+    };
+  }
+
+  if (users[email].password !== currentPassword) {
+    return {
+      success: false,
+      error: "Aktuelles Passwort ist falsch",
+    };
+  }
+
+  // Update password
+  users[email].password = newPassword;
+  localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+
+  return { success: true };
+};

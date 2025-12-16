@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { getOrders, formatPrice, Order } from "@/services/orderService";
+import { changePassword } from "@/services/authService";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, FileText, Download, Package } from "lucide-react";
+import { User, Mail, FileText, Download, Package, Key, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 const Profile = () => {
@@ -18,6 +19,13 @@ const Profile = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  
+  // Password change state
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -42,6 +50,41 @@ const Profile = () => {
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const handleChangePassword = async () => {
+    if (!user) return;
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwörter stimmen nicht überein");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Passwort muss mindestens 6 Zeichen lang sein");
+      return;
+    }
+
+    setPasswordLoading(true);
+    const result = await changePassword(user.email, currentPassword, newPassword);
+    setPasswordLoading(false);
+
+    if (result.success) {
+      toast.success("Passwort erfolgreich geändert");
+      setIsChangingPassword(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
+      toast.error(result.error || "Fehler beim Ändern des Passworts");
+    }
+  };
+
+  const cancelPasswordChange = () => {
+    setIsChangingPassword(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   const getStatusBadge = (status: Order["status"]) => {
@@ -81,7 +124,7 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 pt-20 max-w-4xl">
         <h1 className="text-2xl font-semibold mb-6">Mein Profil</h1>
         
         <div className="grid gap-6">
@@ -135,10 +178,62 @@ const Profile = () => {
                     Bearbeiten
                   </Button>
                 )}
-                <Button variant="destructive" onClick={handleLogout}>
-                  Abmelden
-                </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Password Change */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Key className="h-5 w-5 text-primary" />
+                Passwort ändern
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isChangingPassword ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Aktuelles Passwort</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">Neues Passwort</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Neues Passwort bestätigen</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button onClick={handleChangePassword} disabled={passwordLoading}>
+                      {passwordLoading ? "Wird geändert..." : "Passwort ändern"}
+                    </Button>
+                    <Button variant="outline" onClick={cancelPasswordChange}>
+                      Abbrechen
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button variant="outline" onClick={() => setIsChangingPassword(true)}>
+                  Passwort ändern
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -225,6 +320,16 @@ const Profile = () => {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Logout */}
+          <Card>
+            <CardContent className="pt-6">
+              <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
+                <LogOut className="h-4 w-4 mr-2" />
+                Abmelden
+              </Button>
             </CardContent>
           </Card>
         </div>
