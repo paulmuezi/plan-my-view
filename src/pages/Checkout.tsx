@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/services/emailService";
+import { createPaymentIntent, processPayment, eurosToCents, PaymentMethod } from "@/services/paymentService";
 
 interface CheckoutState {
   paperFormat: string;
@@ -21,7 +22,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const state = location.state as CheckoutState | null;
-  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   if (!state) {
@@ -41,16 +42,43 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
-      // TODO: Replace with real payment processing
-      // Simulate payment processing delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const customerEmail = user?.email || "kunde@example.com";
+      
+      // Step 1: Create payment intent
+      const paymentIntentResult = await createPaymentIntent({
+        amount: eurosToCents(totalPrice),
+        currency: 'EUR',
+        customerEmail,
+        metadata: {
+          paperFormat,
+          orientation,
+          scale,
+          pdfSelected: String(pdfSelected),
+          dxfSelected: String(dxfSelected),
+        },
+      });
+      
+      if (!paymentIntentResult.success || !paymentIntentResult.paymentIntent) {
+        throw new Error(paymentIntentResult.error || "Payment intent creation failed");
+      }
+      
+      // Step 2: Process the payment
+      const paymentResult = await processPayment({
+        paymentIntentId: paymentIntentResult.paymentIntent.id,
+        paymentMethod: selectedPayment,
+      });
+      
+      if (!paymentResult.success) {
+        toast.error(paymentResult.error || "Zahlung fehlgeschlagen");
+        return;
+      }
       
       // Generate order ID
       const orderId = generateOrderId();
       
-      // Prepare email data
+      // Step 3: Prepare email data
       const emailData: OrderEmailData = {
-        customerEmail: user?.email || "kunde@example.com",
+        customerEmail,
         customerName: user?.name,
         orderId,
         paperFormat,
@@ -62,16 +90,16 @@ const Checkout = () => {
         orderDate: new Date(),
       };
       
-      // Send confirmation email
+      // Step 4: Send confirmation email
       const emailResult = await sendOrderConfirmationEmail(emailData);
       
       if (emailResult.success) {
-        console.log("Order completed:", { orderId, emailMessageId: emailResult.messageId });
+        console.log("Order completed:", { orderId, paymentIntentId: paymentResult.paymentIntentId, emailMessageId: emailResult.messageId });
       } else {
         console.warn("Email sending failed:", emailResult.error);
       }
       
-      // Navigate to success page
+      // Step 5: Navigate to success page
       navigate("/success", { 
         state: { 
           orderId, 
@@ -81,7 +109,7 @@ const Checkout = () => {
           pdfSelected,
           dxfSelected,
           totalPrice,
-          customerEmail: user?.email || "kunde@example.com"
+          customerEmail,
         } 
       });
       
