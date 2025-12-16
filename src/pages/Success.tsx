@@ -1,7 +1,8 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Map, CheckCircle, Download, FileText, FileCode, ArrowRight, Home } from "lucide-react";
+import { Map, CheckCircle, Download, FileText, FileCode, ArrowRight, Home, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SuccessState {
   orderId: string;
@@ -17,6 +18,7 @@ interface SuccessState {
 const Success = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const state = location.state as SuccessState | null;
 
   if (!state) {
@@ -48,6 +50,14 @@ const Success = () => {
             <Map className="w-5 h-5 text-primary" />
             <span className="font-semibold text-foreground">Lageplaner</span>
           </Link>
+          {user && (
+            <Link to="/profile">
+              <Button size="sm" variant="ghost" className="gap-2">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">{user.name || user.email}</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </header>
 

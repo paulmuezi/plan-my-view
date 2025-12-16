@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Map, ArrowLeft, CreditCard, FileText, FileCode, Check } from "lucide-react";
+import { Map, ArrowLeft, CreditCard, FileText, FileCode, Check, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/services/emailService";
 import { createPaymentIntent, processPayment, eurosToCents, PaymentMethod } from "@/services/paymentService";
+import { saveOrder } from "@/services/orderService";
 
 interface CheckoutState {
   paperFormat: string;
@@ -99,7 +100,23 @@ const Checkout = () => {
         console.warn("Email sending failed:", emailResult.error);
       }
       
-      // Step 5: Navigate to success page
+      // Step 5: Save order to order history
+      if (user) {
+        const fileFormats: string[] = [];
+        if (pdfSelected) fileFormats.push("pdf");
+        if (dxfSelected) fileFormats.push("dxf");
+        
+        saveOrder(user.id, {
+          address: "Musterstraße 1, 12345 Berlin", // TODO: Get actual address from map
+          format: paperFormat,
+          scale,
+          orientation,
+          fileFormats,
+          total: totalPrice,
+        });
+      }
+      
+      // Step 6: Navigate to success page
       navigate("/success", { 
         state: { 
           orderId, 
@@ -130,10 +147,20 @@ const Checkout = () => {
             <Map className="w-5 h-5 text-primary" />
             <span className="font-semibold text-foreground">Lageplaner</span>
           </Link>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/editor")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Zurück zum Editor
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/editor")}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Zurück
+            </Button>
+            {user && (
+              <Link to="/profile">
+                <Button size="sm" variant="ghost" className="gap-2">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">{user.name || user.email}</span>
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
