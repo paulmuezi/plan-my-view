@@ -345,3 +345,127 @@ export const sendPasswordResetEmail = async (email: string): Promise<EmailRespon
     messageId: `mock-reset-${Date.now()}`,
   };
 };
+
+// Email Verification
+
+export interface VerificationEmailData {
+  email: string;
+  name: string;
+  verificationToken: string;
+  verificationUrl: string;
+  expiresAt: Date;
+}
+
+// Generate email verification template
+export const generateVerificationEmail = (data: VerificationEmailData): { subject: string; html: string; text: string } => {
+  const subject = "Lageplaner - E-Mail-Adresse bestätigen";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f97316; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">Lageplaner</h1>
+  </div>
+  
+  <div style="background-color: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <h2 style="color: #1f2937; margin-top: 0;">Willkommen bei Lageplaner!</h2>
+    
+    <p>Hallo ${data.name},</p>
+    
+    <p>Vielen Dank für Ihre Registrierung. Bitte bestätigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.verificationUrl}" style="display: inline-block; background-color: #f97316; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+        E-Mail bestätigen
+      </a>
+    </div>
+    
+    <p style="color: #6b7280; font-size: 14px;">
+      Oder kopieren Sie diesen Link in Ihren Browser:<br>
+      <a href="${data.verificationUrl}" style="color: #f97316; word-break: break-all;">${data.verificationUrl}</a>
+    </p>
+    
+    <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0; color: #92400e; font-size: 14px;">
+        <strong>Wichtig:</strong> Dieser Link ist 24 Stunden gültig.
+      </p>
+    </div>
+    
+    <p style="color: #6b7280; font-size: 14px;">
+      Falls Sie sich nicht bei Lageplaner registriert haben, können Sie diese E-Mail ignorieren.
+    </p>
+    
+    <p style="margin-bottom: 0;">Mit freundlichen Grüßen,<br><strong>Ihr Lageplaner Team</strong></p>
+  </div>
+  
+  <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+    <p>Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese Nachricht.</p>
+    <p>© ${new Date().getFullYear()} Lageplaner. Alle Rechte vorbehalten.</p>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  const text = `
+Lageplaner - E-Mail-Adresse bestätigen
+
+Hallo ${data.name},
+
+Vielen Dank für Ihre Registrierung. Bitte bestätigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren.
+
+Klicken Sie auf den folgenden Link:
+${data.verificationUrl}
+
+Wichtig: Dieser Link ist 24 Stunden gültig.
+
+Falls Sie sich nicht bei Lageplaner registriert haben, können Sie diese E-Mail ignorieren.
+
+Mit freundlichen Grüßen,
+Ihr Lageplaner Team
+
+---
+Diese E-Mail wurde automatisch generiert.
+© ${new Date().getFullYear()} Lageplaner. Alle Rechte vorbehalten.
+  `.trim();
+
+  return { subject, html, text };
+};
+
+// TODO: Replace this mock implementation with real backend API call
+export const sendVerificationEmail = async (email: string, name: string, token: string): Promise<EmailResponse> => {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  const verificationUrl = `${window.location.origin}/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  const emailData: VerificationEmailData = {
+    email,
+    name,
+    verificationToken: token,
+    verificationUrl,
+    expiresAt,
+  };
+
+  const emailContent = generateVerificationEmail(emailData);
+
+  // Mock implementation - log email details to console
+  console.log('=== MOCK VERIFICATION EMAIL ===');
+  console.log('To:', email);
+  console.log('Subject:', emailContent.subject);
+  console.log('Verification URL:', verificationUrl);
+  console.log('Token:', token);
+  console.log('Expires:', expiresAt.toLocaleString('de-DE'));
+  console.log('==============================');
+
+  // TODO: Replace with actual API call to backend
+  return {
+    success: true,
+    messageId: `mock-verify-${Date.now()}`,
+  };
+};

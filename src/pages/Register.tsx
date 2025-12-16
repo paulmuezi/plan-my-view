@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Map, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Map, Mail, Lock, Eye, EyeOff, User, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,12 +9,14 @@ import { toast } from "sonner";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register, loginWithGoogle, user } = useAuth();
+  const { register, loginWithGoogle, user, pendingVerification, resendVerificationEmail } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   // Redirect if already logged in
   if (user) {
@@ -31,8 +33,9 @@ const Register = () => {
     if (error) {
       toast.error(error);
     } else {
-      toast.success("Konto erfolgreich erstellt!");
-      navigate("/editor");
+      setRegisteredEmail(email);
+      setRegistrationComplete(true);
+      toast.success("Registrierung erfolgreich! Bitte bestätigen Sie Ihre E-Mail.");
     }
 
     setIsLoading(false);
@@ -52,6 +55,67 @@ const Register = () => {
 
     setIsLoading(false);
   };
+
+  const handleResendEmail = async () => {
+    setIsLoading(true);
+    const { error } = await resendVerificationEmail(registeredEmail);
+    
+    if (error) {
+      toast.error(error);
+    } else {
+      toast.success("Verifizierungs-E-Mail wurde erneut gesendet!");
+    }
+    setIsLoading(false);
+  };
+
+  // Show verification pending screen
+  if (registrationComplete || pendingVerification) {
+    const emailToShow = registeredEmail || pendingVerification;
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        <header className="border-b border-border bg-card/80 backdrop-blur-sm">
+          <div className="max-w-6xl mx-auto px-4 h-14 flex items-center">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Map className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-foreground">Lageplaner</span>
+            </Link>
+          </div>
+        </header>
+
+        <div className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-sm text-center">
+            <CheckCircle className="w-16 h-16 text-primary mx-auto mb-6" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              E-Mail bestätigen
+            </h1>
+            <p className="text-muted-foreground text-sm mb-6">
+              Wir haben eine Bestätigungs-E-Mail an <strong>{emailToShow}</strong> gesendet. 
+              Bitte klicken Sie auf den Link in der E-Mail, um Ihr Konto zu aktivieren.
+            </p>
+            
+            <div className="space-y-3">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={handleResendEmail}
+                disabled={isLoading}
+              >
+                {isLoading ? "Wird gesendet..." : "E-Mail erneut senden"}
+              </Button>
+              <Button asChild variant="ghost" className="w-full">
+                <Link to="/login">Zur Anmeldung</Link>
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-6">
+              Tipp: Überprüfen Sie auch Ihren Spam-Ordner, falls Sie keine E-Mail erhalten haben.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
