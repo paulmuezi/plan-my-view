@@ -27,7 +27,7 @@ const Checkout = () => {
   }
 
   const { paperFormat, orientation, scale, pdfSelected, dxfSelected, totalPrice } = state;
-  const basePrice = paperFormat === "A4" ? 10 : 15;
+  const basePrice = paperFormat === "A4" ? 10 : paperFormat === "A3" ? 15 : 20;
 
   const handlePayment = () => {
     if (!selectedPayment) {
@@ -143,14 +143,22 @@ const Checkout = () => {
                 </div>
               </div>
               <div className="border-t border-border pt-3 mt-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{paperFormat} Karte</span>
-                  <span>{basePrice}€</span>
-                </div>
-                {dxfSelected && (
+                {pdfSelected && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{paperFormat} Karte (PDF)</span>
+                    <span>{basePrice}€</span>
+                  </div>
+                )}
+                {dxfSelected && !pdfSelected && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">DXF</span>
+                    <span>{basePrice}€</span>
+                  </div>
+                )}
+                {pdfSelected && dxfSelected && (
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-muted-foreground">DXF Format</span>
-                    <span>+5€</span>
+                    <span>+10€</span>
                   </div>
                 )}
                 <div className="flex justify-between font-semibold mt-3 pt-3 border-t border-border">
