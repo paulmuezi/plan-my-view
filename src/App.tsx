@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Home from "./pages/Home";
 import Editor from "./pages/Editor";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
 import Register from "./pages/Register";
 import Checkout from "./pages/Checkout";
 import Success from "./pages/Success";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/editor" element={<Editor />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/register" element={<Register />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/success" element={<Success />} />
