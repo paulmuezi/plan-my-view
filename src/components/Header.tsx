@@ -14,15 +14,11 @@ const Header = () => {
 
         {/* Navigation */}
         <nav className="flex items-center gap-6">
-          <a 
-            href="#about" 
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Über uns
-          </a>
-          <Button size="sm">
-            Anmelden
-          </Button>
+          <Link to="/login">
+            <Button size="sm">
+              Anmelden
+            </Button>
+          </Link>
         </nav>
       </div>
     </header>
