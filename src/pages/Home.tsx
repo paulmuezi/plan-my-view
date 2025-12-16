@@ -28,7 +28,7 @@ const Home = () => {
 
         <div className="flex justify-center mb-16">
           <Link to="/editor">
-            <Button size="lg" className="px-8">
+            <Button size="lg" className="px-12 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow">
               Lageplan erstellen
             </Button>
           </Link>
