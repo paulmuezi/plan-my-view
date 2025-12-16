@@ -34,8 +34,8 @@ const SettingsPanel = () => {
   const [dxfSelected, setDxfSelected] = useState(false);
 
   const basePrice = getBasePrice(paperFormat);
-  // PDF or DXF alone = base price, both = base + 5€
-  const totalPrice = (pdfSelected && dxfSelected) ? basePrice + 5 : basePrice;
+  // DXF adds +10€
+  const totalPrice = dxfSelected ? basePrice + 10 : basePrice;
 
   const handleGeneratePreview = () => {
     if (!user) {
@@ -125,7 +125,7 @@ const SettingsPanel = () => {
                 checked={dxfSelected} 
                 onCheckedChange={(checked) => setDxfSelected(checked as boolean)}
               />
-              <label htmlFor="dxf" className="text-sm cursor-pointer">DXF (+5€)</label>
+              <label htmlFor="dxf" className="text-sm cursor-pointer">DXF (+10€)</label>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ const SettingsPanel = () => {
             <span className="text-lg font-semibold text-primary">{totalPrice}€</span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {paperFormat}: {basePrice}€{(pdfSelected && dxfSelected) ? ` + DXF: 5€` : ""}
+            {paperFormat}: {basePrice}€{dxfSelected ? ` + DXF: 10€` : ""}
           </p>
         </div>
       </div>
