@@ -137,7 +137,12 @@ const SettingsPanel = () => {
             <span className="text-lg font-semibold text-primary">{totalPrice}€</span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {paperFormat}: {basePrice}€{(pdfSelected && dxfSelected) ? ` + DXF: 10€` : ""}
+            {pdfSelected && dxfSelected 
+              ? `${paperFormat}: ${basePrice}€ + DXF: 10€`
+              : pdfSelected 
+                ? `${paperFormat}: ${basePrice}€`
+                : `DXF: ${basePrice}€`
+            }
           </p>
         </div>
       </div>
