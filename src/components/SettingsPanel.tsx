@@ -12,9 +12,17 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 
-type PaperFormat = "A4" | "A3";
+type PaperFormat = "A4" | "A3" | "A2";
 type Orientation = "Quer" | "Hoch";
 type Scale = "1:500" | "1:1000" | "1:2000";
+
+const getBasePrice = (format: PaperFormat) => {
+  switch (format) {
+    case "A4": return 10;
+    case "A3": return 15;
+    case "A2": return 20;
+  }
+};
 
 const SettingsPanel = () => {
   const navigate = useNavigate();
@@ -25,9 +33,9 @@ const SettingsPanel = () => {
   const [pdfSelected, setPdfSelected] = useState(true);
   const [dxfSelected, setDxfSelected] = useState(false);
 
-  const basePrice = paperFormat === "A4" ? 10 : 15;
-  const dxfPrice = dxfSelected ? 5 : 0;
-  const totalPrice = basePrice + dxfPrice;
+  const basePrice = getBasePrice(paperFormat);
+  // PDF or DXF alone = base price, both = base + 5€
+  const totalPrice = (pdfSelected && dxfSelected) ? basePrice + 5 : basePrice;
 
   const handleGeneratePreview = () => {
     if (!user) {
@@ -63,8 +71,9 @@ const SettingsPanel = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="A4">A4 (10€)</SelectItem>
-              <SelectItem value="A3">A3 (15€)</SelectItem>
+              <SelectItem value="A4">A4</SelectItem>
+              <SelectItem value="A3">A3</SelectItem>
+              <SelectItem value="A2">A2</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -128,7 +137,7 @@ const SettingsPanel = () => {
             <span className="text-lg font-semibold text-primary">{totalPrice}€</span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {paperFormat}: {basePrice}€{dxfSelected ? ` + DXF: 5€` : ""}
+            {paperFormat}: {basePrice}€{(pdfSelected && dxfSelected) ? ` + DXF: 5€` : ""}
           </p>
         </div>
       </div>
