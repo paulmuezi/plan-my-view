@@ -4,6 +4,8 @@ import { Map, ArrowLeft, CreditCard, FileText, FileCode, Check } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/services/emailService";
 
 interface CheckoutState {
   paperFormat: string;
@@ -17,6 +19,7 @@ interface CheckoutState {
 const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const state = location.state as CheckoutState | null;
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -29,17 +32,57 @@ const Checkout = () => {
   const { paperFormat, orientation, scale, pdfSelected, dxfSelected, totalPrice } = state;
   const basePrice = paperFormat === "A4" ? 10 : paperFormat === "A3" ? 15 : 20;
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!selectedPayment) {
       toast.error("Bitte wählen Sie eine Zahlungsmethode");
       return;
     }
+    
     setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
+    
+    try {
+      // TODO: Replace with real payment processing
+      // Simulate payment processing delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      // Generate order ID
+      const orderId = generateOrderId();
+      
+      // Prepare email data
+      const emailData: OrderEmailData = {
+        customerEmail: user?.email || "kunde@example.com",
+        customerName: user?.name,
+        orderId,
+        paperFormat,
+        orientation,
+        scale,
+        pdfSelected,
+        dxfSelected,
+        totalPrice,
+        orderDate: new Date(),
+      };
+      
+      // Send confirmation email
+      const emailResult = await sendOrderConfirmationEmail(emailData);
+      
+      if (emailResult.success) {
+        toast.success("Zahlung erfolgreich! Bestätigungs-E-Mail wurde versendet.");
+        console.log("Order completed:", { orderId, emailMessageId: emailResult.messageId });
+      } else {
+        // Payment succeeded but email failed - still show success
+        toast.success("Zahlung erfolgreich! Ihr Download wird vorbereitet...");
+        console.warn("Email sending failed:", emailResult.error);
+      }
+      
+      // TODO: Navigate to success/download page
+      // navigate("/success", { state: { orderId, ...state } });
+      
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
+    } finally {
       setIsProcessing(false);
-      toast.success("Zahlung erfolgreich! Ihr Download wird vorbereitet...");
-    }, 2000);
+    }
   };
 
   return (
