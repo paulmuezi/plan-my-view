@@ -13,19 +13,9 @@ const Home = () => {
             <span className="font-semibold text-foreground">Lageplaner</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <a 
-              href="#wie-es-funktioniert" 
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
-            >
-              So funktioniert's
-            </a>
-            <a 
-              href="#preise" 
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
-            >
-              Preise
-            </a>
-            <Button size="sm" variant="outline">Anmelden</Button>
+            <Link to="/login">
+              <Button size="sm" variant="outline">Anmelden</Button>
+            </Link>
           </nav>
         </div>
       </header>
@@ -41,7 +31,6 @@ const Home = () => {
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Lageplan erstellen
-              <span className="block text-primary mt-1">in wenigen Minuten</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
               Erstellen Sie professionelle Auszüge aus dem Liegenschaftskataster – 
@@ -134,9 +123,6 @@ const Home = () => {
 
           <div className="max-w-md mx-auto">
             <div className="bg-card border-2 border-primary rounded-2xl p-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-bl-lg">
-                Beliebt
-              </div>
               <div className="text-center">
                 <h3 className="text-xl font-semibold text-foreground mb-2">Lageplan</h3>
                 <div className="mb-4">
@@ -183,7 +169,6 @@ const Home = () => {
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-foreground transition-colors">Impressum</a>
               <a href="#" className="hover:text-foreground transition-colors">Datenschutz</a>
-              <a href="#" className="hover:text-foreground transition-colors">Kontakt</a>
             </div>
             <p className="text-sm text-muted-foreground">
               © 2025 Lageplaner
