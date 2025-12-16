@@ -1,8 +1,16 @@
-import { Link } from "react-router-dom";
-import { Map, Search, Settings, Download, CheckCircle, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Map, Search, Settings, Download, CheckCircle, ArrowRight, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Home = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -13,9 +21,21 @@ const Home = () => {
             <span className="font-semibold text-foreground">Lageplaner</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <Link to="/login">
-              <Button size="sm" variant="outline">Anmelden</Button>
-            </Link>
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  {user.name || user.email}
+                </span>
+                <Button size="sm" variant="outline" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Abmelden
+                </Button>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button size="sm" variant="outline">Anmelden</Button>
+              </Link>
+            )}
           </nav>
         </div>
       </header>
@@ -37,7 +57,7 @@ const Home = () => {
               schnell, einfach und rechtssicher.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/login">
+              <Link to={user ? "/editor" : "/login"}>
                 <Button size="lg" className="px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
                   Jetzt Lageplan erstellen
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -147,7 +167,7 @@ const Home = () => {
                     <span className="text-muted-foreground">Bundesweit (außer Bayern)</span>
                   </li>
                 </ul>
-                <Link to="/login" className="block">
+                <Link to={user ? "/editor" : "/login"} className="block">
                   <Button className="w-full py-6 text-base font-semibold">
                     Lageplan erstellen
                   </Button>

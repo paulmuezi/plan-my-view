@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 type PaperFormat = "A4" | "A3";
 type Orientation = "Quer" | "Hoch";
@@ -17,6 +18,7 @@ type Scale = "1:500" | "1:1000" | "1:2000";
 
 const SettingsPanel = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [paperFormat, setPaperFormat] = useState<PaperFormat>("A4");
   const [orientation, setOrientation] = useState<Orientation>("Quer");
   const [scale, setScale] = useState<Scale>("1:1000");
@@ -28,7 +30,20 @@ const SettingsPanel = () => {
   const totalPrice = basePrice + dxfPrice;
 
   const handleGeneratePreview = () => {
-    navigate("/login");
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    navigate("/checkout", {
+      state: {
+        paperFormat,
+        orientation,
+        scale,
+        pdfSelected,
+        dxfSelected,
+        totalPrice
+      }
+    });
   };
 
   const canGenerate = pdfSelected || dxfSelected;
