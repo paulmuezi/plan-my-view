@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type PaperFormat = "A4" | "A3";
 type Orientation = "Quer" | "Hoch";
@@ -21,16 +28,7 @@ const SettingsPanel = () => {
   const totalPrice = basePrice + dxfPrice;
 
   const handleGeneratePreview = () => {
-    navigate("/checkout", {
-      state: {
-        paperFormat,
-        orientation,
-        scale,
-        pdfSelected,
-        dxfSelected,
-        totalPrice
-      }
-    });
+    navigate("/login");
   };
 
   const canGenerate = pdfSelected || dxfSelected;
@@ -45,61 +43,44 @@ const SettingsPanel = () => {
         {/* Paper Format */}
         <div>
           <Label className="text-xs text-muted-foreground mb-1.5 block">Papierformat</Label>
-          <div className="flex gap-1">
-            {(["A4", "A3"] as PaperFormat[]).map((format) => (
-              <button
-                key={format}
-                onClick={() => setPaperFormat(format)}
-                className={`flex-1 py-1.5 px-2 rounded text-sm transition-colors ${
-                  paperFormat === format
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-muted"
-                }`}
-              >
-                {format}
-              </button>
-            ))}
-          </div>
+          <Select value={paperFormat} onValueChange={(value) => setPaperFormat(value as PaperFormat)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="A4">A4 (10€)</SelectItem>
+              <SelectItem value="A3">A3 (15€)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Orientation */}
         <div>
           <Label className="text-xs text-muted-foreground mb-1.5 block">Ausrichtung</Label>
-          <div className="flex gap-1">
-            {(["Quer", "Hoch"] as Orientation[]).map((orient) => (
-              <button
-                key={orient}
-                onClick={() => setOrientation(orient)}
-                className={`flex-1 py-1.5 px-2 rounded text-sm transition-colors ${
-                  orientation === orient
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-muted"
-                }`}
-              >
-                {orient}
-              </button>
-            ))}
-          </div>
+          <Select value={orientation} onValueChange={(value) => setOrientation(value as Orientation)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Quer">Querformat</SelectItem>
+              <SelectItem value="Hoch">Hochformat</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Scale */}
         <div>
           <Label className="text-xs text-muted-foreground mb-1.5 block">Maßstab</Label>
-          <div className="flex gap-1">
-            {(["1:500", "1:1000", "1:2000"] as Scale[]).map((s) => (
-              <button
-                key={s}
-                onClick={() => setScale(s)}
-                className={`flex-1 py-1.5 px-2 rounded text-sm transition-colors ${
-                  scale === s
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-muted"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+          <Select value={scale} onValueChange={(value) => setScale(value as Scale)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1:500">1:500</SelectItem>
+              <SelectItem value="1:1000">1:1000</SelectItem>
+              <SelectItem value="1:2000">1:2000</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* File Format */}
@@ -144,7 +125,7 @@ const SettingsPanel = () => {
           size="sm"
           disabled={!canGenerate}
         >
-          Vorschau generieren
+          Lageplan erstellen
         </Button>
       </div>
     </div>
