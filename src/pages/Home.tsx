@@ -54,7 +54,7 @@ const Home = () => {
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <span className="text-sm text-muted-foreground">Keine Registrierung erforderlich</span>
+              <span className="text-sm text-muted-foreground">Kostenlose Vorschau</span>
             </div>
           </div>
         </div>
