@@ -9,7 +9,6 @@ import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/s
 import { createPaymentIntent, processPayment, eurosToCents, PaymentMethod } from "@/services/paymentService";
 import { saveOrder } from "@/services/orderService";
 import Header from "@/components/Header";
-import previewA3 from "@/assets/preview-a3.png";
 import previewA4 from "@/assets/preview-a4.png";
 
 interface CheckoutState {
@@ -144,22 +143,13 @@ const Checkout = () => {
 
       <main className="pt-14 flex h-[calc(100vh-56px)]">
         {/* Preview Section - Left */}
-        <div className="flex-1 bg-muted/30 p-6 overflow-auto">
-          <div className="flex flex-col items-center gap-6 py-4">
-            <div className="w-64 shadow-lg rounded-lg overflow-hidden border border-border">
-              <img 
-                src={previewA4} 
-                alt="Vorschau A4" 
-                className="w-full h-auto object-contain"
-              />
-            </div>
-            <div className="w-64 shadow-lg rounded-lg overflow-hidden border border-border">
-              <img 
-                src={previewA3} 
-                alt="Vorschau A3" 
-                className="w-full h-auto object-contain"
-              />
-            </div>
+        <div className="flex-1 bg-muted/30 p-6 flex items-center justify-center overflow-auto">
+          <div className="w-64 shadow-lg rounded-lg overflow-hidden border border-border">
+            <img 
+              src={previewA4} 
+              alt="Vorschau" 
+              className="w-full h-auto object-contain"
+            />
           </div>
         </div>
 
