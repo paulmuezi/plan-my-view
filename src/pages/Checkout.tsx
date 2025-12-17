@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Map, ArrowLeft, CreditCard, FileText, FileCode, Check, User } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, CreditCard, FileText, FileCode, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/services/emailService";
 import { createPaymentIntent, processPayment, eurosToCents, PaymentMethod } from "@/services/paymentService";
 import { saveOrder } from "@/services/orderService";
+import Header from "@/components/Header";
 
 interface CheckoutState {
   paperFormat: string;
@@ -48,7 +49,6 @@ const Checkout = () => {
     try {
       const customerEmail = user?.email || "kunde@example.com";
       
-      // Step 1: Create payment intent
       const paymentIntentResult = await createPaymentIntent({
         amount: eurosToCents(totalPrice),
         currency: 'EUR',
@@ -66,7 +66,6 @@ const Checkout = () => {
         throw new Error(paymentIntentResult.error || "Payment intent creation failed");
       }
       
-      // Step 2: Process the payment
       const paymentResult = await processPayment({
         paymentIntentId: paymentIntentResult.paymentIntent.id,
         paymentMethod: selectedPayment,
@@ -77,10 +76,8 @@ const Checkout = () => {
         return;
       }
       
-      // Generate order ID
       const orderId = generateOrderId();
       
-      // Step 3: Prepare email data
       const emailData: OrderEmailData = {
         customerEmail,
         customerName: user?.name,
@@ -94,7 +91,6 @@ const Checkout = () => {
         orderDate: new Date(),
       };
       
-      // Step 4: Send confirmation email
       const emailResult = await sendOrderConfirmationEmail(emailData);
       
       if (emailResult.success) {
@@ -103,7 +99,6 @@ const Checkout = () => {
         console.warn("Email sending failed:", emailResult.error);
       }
       
-      // Step 5: Save order to order history
       if (user) {
         const fileFormats: string[] = [];
         if (pdfSelected) fileFormats.push("pdf");
@@ -119,7 +114,6 @@ const Checkout = () => {
         });
       }
       
-      // Step 6: Navigate to success page
       navigate("/success", { 
         state: { 
           orderId, 
@@ -142,33 +136,17 @@ const Checkout = () => {
     }
   };
 
+  const backButton = (
+    <Button variant="ghost" size="sm" onClick={() => navigate("/editor")}>
+      <ArrowLeft className="w-4 h-4 mr-2" />
+      Zurück
+    </Button>
+  );
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-14">
-        <div className="flex items-center justify-between h-full px-4">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Map className="w-5 h-5 text-primary" />
-            <span className="font-semibold text-foreground">Lageplaner</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/editor")}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Zurück
-            </Button>
-            {user && (
-              <Link to="/profile">
-                <Button size="sm" variant="ghost" className="gap-2">
-                  <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">{user.name || user.email}</span>
-                </Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header rightContent={backButton} />
 
-      {/* Main Content */}
       <main className="pt-14 flex h-[calc(100vh-56px)]">
         {/* Preview Section - Left */}
         <div className="flex-1 bg-muted/30 p-6 flex items-center justify-center">
@@ -179,28 +157,18 @@ const Checkout = () => {
                 orientation === "Quer" ? "aspect-[1.414/1]" : "aspect-[1/1.414]"
               }`}
             >
-              {/* Simplified map preview */}
               <svg className="w-full h-full" viewBox="0 0 400 300">
-                {/* Background */}
                 <rect fill="hsl(var(--muted))" width="400" height="300" opacity="0.3" />
-                
-                {/* Roads */}
                 <path d="M0,150 L400,150" stroke="hsl(var(--muted-foreground))" strokeWidth="8" opacity="0.4" />
                 <path d="M200,0 L200,300" stroke="hsl(var(--muted-foreground))" strokeWidth="6" opacity="0.4" />
-                
-                {/* Property boundaries */}
                 <rect x="50" y="50" width="100" height="80" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
                 <rect x="160" y="50" width="80" height="80" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
                 <rect x="250" y="50" width="100" height="80" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
                 <rect x="50" y="170" width="100" height="100" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
                 <rect x="250" y="170" width="100" height="100" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
-                
-                {/* Buildings */}
                 <rect x="70" y="70" width="40" height="30" fill="hsl(var(--muted-foreground))" opacity="0.3" />
                 <rect x="270" y="70" width="50" height="40" fill="hsl(var(--muted-foreground))" opacity="0.3" />
                 <rect x="70" y="200" width="60" height="40" fill="hsl(var(--muted-foreground))" opacity="0.3" />
-                
-                {/* Parcel numbers */}
                 <text x="100" y="115" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">234/5</text>
                 <text x="200" y="100" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">234/6</text>
                 <text x="300" y="115" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">235/1</text>
@@ -208,7 +176,6 @@ const Checkout = () => {
                 <text x="300" y="240" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">236/3</text>
               </svg>
               
-              {/* Scale indicator */}
               <div className="absolute bottom-2 left-2 bg-background/90 px-2 py-1 rounded text-xs">
                 Maßstab {scale}
               </div>
@@ -223,7 +190,6 @@ const Checkout = () => {
         <div className="w-96 bg-card border-l border-border p-6 flex flex-col">
           <h2 className="text-lg font-semibold mb-6">Bestellung abschließen</h2>
 
-          {/* Order Summary */}
           <Card className="mb-6">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Zusammenfassung</CardTitle>
@@ -283,7 +249,6 @@ const Checkout = () => {
             </CardContent>
           </Card>
 
-          {/* Payment Methods */}
           <Card className="flex-1">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Zahlungsmethode</CardTitle>
@@ -326,7 +291,6 @@ const Checkout = () => {
             </CardContent>
           </Card>
 
-          {/* Pay Button */}
           <Button 
             className="w-full mt-6 h-12 text-base" 
             onClick={handlePayment}
