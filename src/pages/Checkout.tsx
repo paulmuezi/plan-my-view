@@ -9,9 +9,7 @@ import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/s
 import { createPaymentIntent, processPayment, eurosToCents, PaymentMethod } from "@/services/paymentService";
 import { saveOrder } from "@/services/orderService";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import previewA4 from "@/assets/preview-a4.png";
-import previewA3 from "@/assets/preview-a3.png";
 
 interface CheckoutState {
   paperFormat: string;
@@ -40,7 +38,6 @@ const Checkout = () => {
   const { paperFormat, orientation, scale, pdfSelected, dxfSelected, totalPrice, address } = state;
   const basePrice = paperFormat === "A4" ? 10 : paperFormat === "A3" ? 15 : 20;
   const displayAddress = address ? address.split(",").slice(0, 3).join(",") : "Adresse nicht verfügbar";
-  const previewImage = paperFormat === "A3" || paperFormat === "A2" ? previewA3 : previewA4;
 
   const handlePayment = async () => {
     if (!selectedPayment) {
@@ -141,15 +138,15 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-14 flex flex-1">
+      <main className="pt-14 flex h-[calc(100vh-56px)]">
         {/* Preview Section - Left */}
         <div className="flex-1 bg-muted/30 p-6 flex items-center justify-center overflow-auto">
           <div className="max-w-md w-full shadow-lg rounded-lg overflow-hidden border border-border">
             <img 
-              src={previewImage} 
+              src={previewA4} 
               alt="Vorschau" 
               className="w-full h-auto object-contain"
             />
@@ -281,7 +278,6 @@ const Checkout = () => {
           </p>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
