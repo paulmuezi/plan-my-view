@@ -136,16 +136,9 @@ const Checkout = () => {
     }
   };
 
-  const backButton = (
-    <Button variant="ghost" size="sm" onClick={() => navigate("/editor")}>
-      <ArrowLeft className="w-4 h-4 mr-2" />
-      Zurück
-    </Button>
-  );
-
   return (
     <div className="min-h-screen bg-background">
-      <Header rightContent={backButton} />
+      <Header />
 
       <main className="pt-14 flex h-[calc(100vh-56px)]">
         {/* Preview Section - Left */}
@@ -188,6 +181,13 @@ const Checkout = () => {
 
         {/* Payment Section - Right */}
         <div className="w-96 bg-card border-l border-border p-6 flex flex-col">
+          <button 
+            onClick={() => navigate("/editor")}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Zurück zum Editor
+          </button>
           <h2 className="text-lg font-semibold mb-6">Bestellung abschließen</h2>
 
           <Card className="mb-6">

@@ -190,19 +190,49 @@ const Profile = () => {
               
               <Separator />
               
-              <div className="flex gap-3">
-                {isEditing ? (
-                  <>
-                    <Button onClick={handleSaveProfile}>Speichern</Button>
-                    <Button variant="outline" onClick={() => setIsEditing(false)}>
-                      Abbrechen
+              <div className="flex items-center justify-between">
+                <div className="flex gap-3">
+                  {isEditing ? (
+                    <>
+                      <Button onClick={handleSaveProfile}>Speichern</Button>
+                      <Button variant="outline" onClick={() => setIsEditing(false)}>
+                        Abbrechen
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" onClick={() => setIsEditing(true)}>
+                      Bearbeiten
                     </Button>
-                  </>
-                ) : (
-                  <Button variant="outline" onClick={() => setIsEditing(true)}>
-                    Bearbeiten
-                  </Button>
-                )}
+                  )}
+                </div>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1">
+                      <Trash2 className="h-3 w-3" />
+                      Konto löschen
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Konto wirklich löschen?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Diese Aktion kann nicht rückgängig gemacht werden. Ihr Konto und alle 
+                        zugehörigen Daten werden dauerhaft gelöscht.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteAccount}
+                        disabled={deleteLoading}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {deleteLoading ? "Wird gelöscht..." : "Ja, Konto löschen"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </CardContent>
           </Card>
@@ -350,39 +380,11 @@ const Profile = () => {
 
           {/* Account Actions */}
           <Card>
-            <CardContent className="pt-6 flex flex-col sm:flex-row gap-3">
-              <Button variant="outline" onClick={handleLogout} className="w-full sm:w-auto">
+            <CardContent className="pt-6">
+              <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Abmelden
               </Button>
-              
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="w-full sm:w-auto">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Konto löschen
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Konto wirklich löschen?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Diese Aktion kann nicht rückgängig gemacht werden. Ihr Konto und alle 
-                      zugehörigen Daten werden dauerhaft gelöscht.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      disabled={deleteLoading}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {deleteLoading ? "Wird gelöscht..." : "Ja, Konto löschen"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </CardContent>
           </Card>
         </div>
