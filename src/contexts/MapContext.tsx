@@ -49,10 +49,10 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useMap = () => {
+export const useMapSettings = () => {
   const context = useContext(MapContext);
   if (!context) {
-    throw new Error("useMap must be used within MapProvider");
+    throw new Error("useMapSettings must be used within MapProvider");
   }
   return context;
 };
