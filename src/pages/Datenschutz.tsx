@@ -1,13 +1,19 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Map, ArrowLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import Footer from "@/components/Footer";
 
 const Datenschutz = () => {
   const { user } = useAuth();
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -17,8 +23,8 @@ const Datenschutz = () => {
           </Link>
           {user && (
             <Link to="/profile" className="flex items-center gap-2">
-              <span className="text-sm text-foreground hidden sm:inline">{user.name || user.email}</span>
-              <Button size="icon" variant="outline" className="h-8 w-8">
+              <span className="text-xs text-muted-foreground hidden sm:inline">{user.name || user.email}</span>
+              <Button size="icon" variant="ghost" className="h-8 w-8">
                 <User className="w-4 h-4" />
               </Button>
             </Link>
@@ -27,7 +33,7 @@ const Datenschutz = () => {
       </header>
 
       {/* Content */}
-      <main className="max-w-3xl mx-auto px-4 py-12">
+      <main className="flex-1 max-w-3xl mx-auto px-4 py-12 w-full">
         <Link 
           to="/" 
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -97,6 +103,8 @@ const Datenschutz = () => {
           </section>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 };
