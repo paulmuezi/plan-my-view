@@ -93,10 +93,16 @@ const MapView = () => {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    // Use stored pin position as center if available
+    const initialCenter: L.LatLngExpression = pinPosition 
+      ? [pinPosition.lat, pinPosition.lng] 
+      : GERMANY_CENTER;
+    const initialZoom = pinPosition ? 17 : DEFAULT_ZOOM;
+
     const map = L.map(mapContainerRef.current, {
-      center: GERMANY_CENTER,
-      zoom: DEFAULT_ZOOM,
-      zoomControl: false, // We'll add custom position
+      center: initialCenter,
+      zoom: initialZoom,
+      zoomControl: false,
     });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
