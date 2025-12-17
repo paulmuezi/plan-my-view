@@ -3,6 +3,7 @@ import { CheckCircle, Download, FileText, FileCode, ArrowRight, Home, MapPin } f
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface SuccessState {
   orderId: string;
@@ -39,10 +40,10 @@ const Success = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="pt-14 flex items-center justify-center min-h-[calc(100vh-56px)] p-6">
+      <main className="pt-14 flex items-center justify-center flex-1 p-6">
         <div className="max-w-2xl w-full">
           {/* Success Message */}
           <div className="text-center mb-8">
@@ -159,6 +160,7 @@ const Success = () => {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
