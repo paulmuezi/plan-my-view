@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Map, PanelRightClose, PanelRight, User } from "lucide-react";
+import { Map, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { MapProvider } from "@/contexts/MapContext";
@@ -9,7 +9,6 @@ import SettingsPanel from "@/components/SettingsPanel";
 
 const Editor = () => {
   const { user } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <MapProvider>
@@ -22,19 +21,6 @@ const Editor = () => {
               <span className="font-semibold text-foreground">Lageplaner</span>
             </Link>
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="h-8 w-8"
-                title={sidebarOpen ? "Seitenleiste ausblenden" : "Seitenleiste einblenden"}
-              >
-                {sidebarOpen ? (
-                  <PanelRightClose className="w-4 h-4" />
-                ) : (
-                  <PanelRight className="w-4 h-4" />
-                )}
-              </Button>
               {user ? (
                 <Link to="/profile">
                   <Button size="sm" variant="ghost" className="gap-2">
@@ -53,7 +39,7 @@ const Editor = () => {
         
         <main className="flex-1 flex overflow-hidden">
           <MapView />
-          {sidebarOpen && <SettingsPanel />}
+          <SettingsPanel />
         </main>
       </div>
     </MapProvider>
