@@ -11,12 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMap } from "@/contexts/MapContext";
 
-type PaperFormat = "A4" | "A3" | "A2";
-type Orientation = "Quer" | "Hoch";
-type Scale = "1:500" | "1:1000" | "1:2000";
-
-const getBasePrice = (format: PaperFormat) => {
+const getBasePrice = (format: "A4" | "A3" | "A2") => {
   switch (format) {
     case "A4": return 10;
     case "A3": return 15;
@@ -27,19 +24,19 @@ const getBasePrice = (format: PaperFormat) => {
 const SettingsPanel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [paperFormat, setPaperFormat] = useState<PaperFormat>("A4");
-  const [orientation, setOrientation] = useState<Orientation>("Quer");
-  const [scale, setScale] = useState<Scale>("1:1000");
+  const { paperFormat, setPaperFormat, orientation, setOrientation, scale, setScale, pinPosition, address } = useMap();
   const [pdfSelected, setPdfSelected] = useState(true);
   const [dxfSelected, setDxfSelected] = useState(false);
 
   const basePrice = getBasePrice(paperFormat);
-  // PDF + DXF together costs +10€ extra
   const totalPrice = (pdfSelected && dxfSelected) ? basePrice + 10 : basePrice;
 
   const handleGeneratePreview = () => {
     if (!user) {
       navigate("/login");
+      return;
+    }
+    if (!pinPosition) {
       return;
     }
     navigate("/checkout", {
@@ -49,12 +46,14 @@ const SettingsPanel = () => {
         scale,
         pdfSelected,
         dxfSelected,
-        totalPrice
+        totalPrice,
+        address,
+        pinPosition
       }
     });
   };
 
-  const canGenerate = pdfSelected || dxfSelected;
+  const canGenerate = (pdfSelected || dxfSelected) && pinPosition;
 
   return (
     <div className="w-64 bg-card border-l border-border flex flex-col">
@@ -63,10 +62,18 @@ const SettingsPanel = () => {
       </div>
       
       <div className="p-3 space-y-4 flex-1">
+        {/* Selected Address */}
+        {address && (
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Gewählte Adresse</Label>
+            <p className="text-sm text-foreground line-clamp-3">{address}</p>
+          </div>
+        )}
+
         {/* Paper Format */}
         <div>
           <Label className="text-xs text-muted-foreground mb-1.5 block">Papierformat</Label>
-          <Select value={paperFormat} onValueChange={(value) => setPaperFormat(value as PaperFormat)}>
+          <Select value={paperFormat} onValueChange={(value) => setPaperFormat(value as "A4" | "A3" | "A2")}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -81,7 +88,7 @@ const SettingsPanel = () => {
         {/* Orientation */}
         <div>
           <Label className="text-xs text-muted-foreground mb-1.5 block">Ausrichtung</Label>
-          <Select value={orientation} onValueChange={(value) => setOrientation(value as Orientation)}>
+          <Select value={orientation} onValueChange={(value) => setOrientation(value as "Quer" | "Hoch")}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -95,7 +102,7 @@ const SettingsPanel = () => {
         {/* Scale */}
         <div>
           <Label className="text-xs text-muted-foreground mb-1.5 block">Maßstab</Label>
-          <Select value={scale} onValueChange={(value) => setScale(value as Scale)}>
+          <Select value={scale} onValueChange={(value) => setScale(value as "1:500" | "1:1000" | "1:2000")}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -155,6 +162,11 @@ const SettingsPanel = () => {
         >
           Vorschau anzeigen
         </Button>
+        {!pinPosition && (
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Bitte zuerst einen Ort auf der Karte wählen
+          </p>
+        )}
       </div>
     </div>
   );

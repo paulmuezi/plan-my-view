@@ -16,6 +16,8 @@ interface CheckoutState {
   pdfSelected: boolean;
   dxfSelected: boolean;
   totalPrice: number;
+  address?: string;
+  pinPosition?: { lat: number; lng: number };
 }
 
 const Checkout = () => {
@@ -31,8 +33,9 @@ const Checkout = () => {
     return null;
   }
 
-  const { paperFormat, orientation, scale, pdfSelected, dxfSelected, totalPrice } = state;
+  const { paperFormat, orientation, scale, pdfSelected, dxfSelected, totalPrice, address } = state;
   const basePrice = paperFormat === "A4" ? 10 : paperFormat === "A3" ? 15 : 20;
+  const displayAddress = address ? address.split(",").slice(0, 3).join(",") : "Adresse nicht verfügbar";
 
   const handlePayment = async () => {
     if (!selectedPayment) {
@@ -107,7 +110,7 @@ const Checkout = () => {
         if (dxfSelected) fileFormats.push("dxf");
         
         saveOrder(user.id, {
-          address: "Musterstraße 1, 12345 Berlin", // TODO: Get actual address from map
+          address: address || "Adresse nicht angegeben",
           format: paperFormat,
           scale,
           orientation,
@@ -127,6 +130,7 @@ const Checkout = () => {
           dxfSelected,
           totalPrice,
           customerEmail,
+          address,
         } 
       });
       
@@ -225,6 +229,10 @@ const Checkout = () => {
               <CardTitle className="text-sm">Zusammenfassung</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Adresse</span>
+                <span className="text-right max-w-48 truncate" title={address}>{displayAddress}</span>
+              </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Papierformat</span>
                 <span>{paperFormat} {orientation}</span>
