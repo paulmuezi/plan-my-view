@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMap } from "@/contexts/MapContext";
+import { useMapSettings } from "@/contexts/MapContext";
 
 const getBasePrice = (format: "A4" | "A3" | "A2") => {
   switch (format) {
@@ -24,7 +24,7 @@ const getBasePrice = (format: "A4" | "A3" | "A2") => {
 const SettingsPanel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { paperFormat, setPaperFormat, orientation, setOrientation, scale, setScale, pinPosition, address } = useMap();
+  const { paperFormat, setPaperFormat, orientation, setOrientation, scale, setScale, pinPosition, address } = useMapSettings();
   const [pdfSelected, setPdfSelected] = useState(true);
   const [dxfSelected, setDxfSelected] = useState(false);
 
