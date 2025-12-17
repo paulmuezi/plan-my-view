@@ -10,15 +10,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, FileText, Download, Package, Key, LogOut } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { User, Mail, FileText, Download, Package, Key, LogOut, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Profile = () => {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading, logout, deleteAccount } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
   
   // Password change state
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -50,6 +62,19 @@ const Profile = () => {
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    const result = await deleteAccount();
+    setDeleteLoading(false);
+
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Ihr Konto wurde erfolgreich gelöscht");
+      navigate("/");
+    }
   };
 
   const handleChangePassword = async () => {
@@ -323,13 +348,41 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          {/* Logout */}
+          {/* Account Actions */}
           <Card>
-            <CardContent className="pt-6">
-              <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
+            <CardContent className="pt-6 flex flex-col sm:flex-row gap-3">
+              <Button variant="outline" onClick={handleLogout} className="w-full sm:w-auto">
                 <LogOut className="h-4 w-4 mr-2" />
                 Abmelden
               </Button>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full sm:w-auto">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Konto löschen
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Konto wirklich löschen?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Diese Aktion kann nicht rückgängig gemacht werden. Ihr Konto und alle 
+                      zugehörigen Daten werden dauerhaft gelöscht.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      disabled={deleteLoading}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {deleteLoading ? "Wird gelöscht..." : "Ja, Konto löschen"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
         </div>

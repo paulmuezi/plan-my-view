@@ -15,27 +15,26 @@ const Datenschutz = () => {
             <Map className="w-5 h-5 text-primary" />
             <span className="font-semibold text-foreground">Lageplaner</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <Link to="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Zurück
+          {user && (
+            <Link to="/profile">
+              <Button size="icon" variant="ghost">
+                <User className="w-4 h-4" />
               </Button>
             </Link>
-            {user && (
-              <Link to="/profile">
-                <Button size="sm" variant="ghost" className="gap-2">
-                  <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">{user.name || user.email}</span>
-                </Button>
-              </Link>
-            )}
-          </div>
+          )}
         </div>
       </header>
 
       {/* Content */}
       <main className="max-w-3xl mx-auto px-4 py-12">
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Zurück zur Startseite
+        </Link>
+
         <h1 className="text-3xl font-bold text-foreground mb-8">Datenschutzerklärung</h1>
         
         <div className="prose prose-sm text-muted-foreground space-y-6">

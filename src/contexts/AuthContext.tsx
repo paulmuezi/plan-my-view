@@ -18,6 +18,7 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<{ error?: string }>;
   verifyEmail: (email: string, token: string) => Promise<{ error?: string }>;
   resendVerificationEmail: (email: string) => Promise<{ error?: string }>;
+  deleteAccount: () => Promise<{ error?: string }>;
   logout: () => void;
 }
 
@@ -239,6 +240,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setPendingVerification(null);
   };
 
+  // TODO: Replace with real account deletion
+  const deleteAccount = async (): Promise<{ error?: string }> => {
+    if (!user) {
+      return { error: "Nicht angemeldet" };
+    }
+
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Remove user from mock database
+    const users = getMockUsers();
+    delete users[user.email];
+    saveMockUsers(users);
+
+    // Remove verification tokens
+    const tokens = getVerificationTokens();
+    delete tokens[user.email];
+    saveVerificationTokens(tokens);
+
+    // Clear session
+    localStorage.removeItem(MOCK_USER_KEY);
+    setUser(null);
+    setPendingVerification(null);
+
+    console.log("🗑️ [DUMMY AUTH] Account deleted for:", user.email);
+    return {};
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -250,6 +279,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register,
         verifyEmail,
         resendVerificationEmail,
+        deleteAccount,
         logout,
       }}
     >

@@ -19,9 +19,8 @@ const Header = () => {
         <nav className="flex items-center gap-4">
           {user ? (
             <Link to="/profile">
-              <Button size="sm" variant="ghost" className="gap-2">
+              <Button size="icon" variant="ghost">
                 <User className="w-4 h-4" />
-                <span className="hidden sm:inline">{user.name || user.email}</span>
               </Button>
             </Link>
           ) : (
