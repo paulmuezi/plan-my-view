@@ -144,7 +144,7 @@ const Checkout = () => {
       <main className="pt-14 flex h-[calc(100vh-56px)]">
         {/* Preview Section - Left */}
         <div className="flex-1 bg-muted/30 p-6 flex items-center justify-center overflow-auto">
-          <div className="w-64 shadow-lg rounded-lg overflow-hidden border border-border">
+          <div className="max-w-md w-full shadow-lg rounded-lg overflow-hidden border border-border">
             <img 
               src={previewA4} 
               alt="Vorschau" 
