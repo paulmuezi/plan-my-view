@@ -9,6 +9,8 @@ import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/s
 import { createPaymentIntent, processPayment, eurosToCents, PaymentMethod } from "@/services/paymentService";
 import { saveOrder } from "@/services/orderService";
 import Header from "@/components/Header";
+import previewA3 from "@/assets/preview-a3.png";
+import previewA4 from "@/assets/preview-a4.png";
 
 interface CheckoutState {
   paperFormat: string;
@@ -142,39 +144,21 @@ const Checkout = () => {
 
       <main className="pt-14 flex h-[calc(100vh-56px)]">
         {/* Preview Section - Left */}
-        <div className="flex-1 bg-muted/30 p-6 flex items-center justify-center">
-          <div className="bg-card border border-border rounded-lg shadow-lg p-4 max-w-2xl w-full">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Kartenvorschau</h3>
-            <div 
-              className={`bg-background border border-border rounded relative ${
-                orientation === "Quer" ? "aspect-[1.414/1]" : "aspect-[1/1.414]"
-              }`}
-            >
-              <svg className="w-full h-full" viewBox="0 0 400 300">
-                <rect fill="hsl(var(--muted))" width="400" height="300" opacity="0.3" />
-                <path d="M0,150 L400,150" stroke="hsl(var(--muted-foreground))" strokeWidth="8" opacity="0.4" />
-                <path d="M200,0 L200,300" stroke="hsl(var(--muted-foreground))" strokeWidth="6" opacity="0.4" />
-                <rect x="50" y="50" width="100" height="80" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
-                <rect x="160" y="50" width="80" height="80" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
-                <rect x="250" y="50" width="100" height="80" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
-                <rect x="50" y="170" width="100" height="100" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
-                <rect x="250" y="170" width="100" height="100" fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
-                <rect x="70" y="70" width="40" height="30" fill="hsl(var(--muted-foreground))" opacity="0.3" />
-                <rect x="270" y="70" width="50" height="40" fill="hsl(var(--muted-foreground))" opacity="0.3" />
-                <rect x="70" y="200" width="60" height="40" fill="hsl(var(--muted-foreground))" opacity="0.3" />
-                <text x="100" y="115" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">234/5</text>
-                <text x="200" y="100" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">234/6</text>
-                <text x="300" y="115" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">235/1</text>
-                <text x="100" y="240" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">236/2</text>
-                <text x="300" y="240" fontSize="10" fill="hsl(var(--foreground))" textAnchor="middle" opacity="0.7">236/3</text>
-              </svg>
-              
-              <div className="absolute bottom-2 left-2 bg-background/90 px-2 py-1 rounded text-xs">
-                Maßstab {scale}
-              </div>
+        <div className="flex-1 bg-muted/30 p-6 overflow-auto">
+          <div className="flex flex-col items-center gap-6 py-4">
+            <div className="w-64 shadow-lg rounded-lg overflow-hidden border border-border">
+              <img 
+                src={previewA4} 
+                alt="Vorschau A4" 
+                className="w-full h-auto object-contain"
+              />
             </div>
-            <div className="mt-3 text-xs text-muted-foreground">
-              Format: {paperFormat} {orientation} | Maßstab: {scale}
+            <div className="w-64 shadow-lg rounded-lg overflow-hidden border border-border">
+              <img 
+                src={previewA3} 
+                alt="Vorschau A3" 
+                className="w-full h-auto object-contain"
+              />
             </div>
           </div>
         </div>
