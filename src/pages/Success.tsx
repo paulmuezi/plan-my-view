@@ -1,8 +1,8 @@
-import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Map, CheckCircle, Download, FileText, FileCode, ArrowRight, Home, User } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { CheckCircle, Download, FileText, FileCode, ArrowRight, Home, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
+import Header from "@/components/Header";
 
 interface SuccessState {
   orderId: string;
@@ -13,12 +13,12 @@ interface SuccessState {
   dxfSelected: boolean;
   totalPrice: number;
   customerEmail: string;
+  address?: string;
 }
 
 const Success = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const state = location.state as SuccessState | null;
 
   if (!state) {
@@ -26,42 +26,22 @@ const Success = () => {
     return null;
   }
 
-  const { orderId, paperFormat, orientation, scale, pdfSelected, dxfSelected, totalPrice, customerEmail } = state;
+  const { orderId, paperFormat, orientation, scale, pdfSelected, dxfSelected, totalPrice, customerEmail, address } = state;
 
-  // TODO: Replace with real download URLs from backend
   const handleDownloadPDF = () => {
     console.log("Downloading PDF for order:", orderId);
-    // Simulate download - replace with real download logic
     alert("PDF Download wird gestartet... (Demo)");
   };
 
   const handleDownloadDXF = () => {
     console.log("Downloading DXF for order:", orderId);
-    // Simulate download - replace with real download logic
     alert("DXF Download wird gestartet... (Demo)");
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-14">
-        <div className="flex items-center justify-between h-full px-4">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Map className="w-5 h-5 text-primary" />
-            <span className="font-semibold text-foreground">Lageplaner</span>
-          </Link>
-          {user && (
-            <Link to="/profile">
-              <Button size="sm" variant="ghost" className="gap-2">
-                <User className="w-4 h-4" />
-                <span className="hidden sm:inline">{user.name || user.email}</span>
-              </Button>
-            </Link>
-          )}
-        </div>
-      </header>
+      <Header />
 
-      {/* Main Content */}
       <main className="pt-14 flex items-center justify-center min-h-[calc(100vh-56px)] p-6">
         <div className="max-w-2xl w-full">
           {/* Success Message */}
@@ -87,6 +67,15 @@ const Success = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {address && (
+                <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg mb-3">
+                  <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Adresse</span>
+                    <p className="text-sm font-medium">{address}</p>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Papierformat</span>

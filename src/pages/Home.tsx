@@ -1,36 +1,15 @@
 import { Link } from "react-router-dom";
-import { Map, Search, Settings, Download, CheckCircle, ArrowRight, User } from "lucide-react";
+import { Map, Search, Settings, Download, CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import Header from "@/components/Header";
 
 const Home = () => {
   const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Map className="w-5 h-5 text-primary" />
-            <span className="font-semibold text-foreground">Lageplaner</span>
-          </Link>
-          <nav className="flex items-center gap-4">
-            {user ? (
-              <Link to="/profile" className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground hidden sm:inline">{user.name || user.email}</span>
-                <Button size="icon" variant="ghost" className="h-8 w-8">
-                  <User className="w-4 h-4" />
-                </Button>
-              </Link>
-            ) : (
-              <Link to="/login">
-                <Button size="sm" variant="outline">Anmelden</Button>
-              </Link>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Header variant="contained" />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
