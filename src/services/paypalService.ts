@@ -6,36 +6,37 @@
 // IBAN: DE40 1101 0101 5588 2656 09
 // BIC: SOBKDEB2XXX
 // ============================================
-// TODO: Replace with your real PayPal credentials
-// Get your credentials at: https://developer.paypal.com/
+// PayPal Sandbox Credentials:
+// Client ID: AW1TZSnbXgP3a7THouEigNdhAcAGYlJkyDSiqKeT1lYmP-5_8coRKrhvaWE4PXimdy--pcsevSz0attv
+// Secret: EKRycvvx78yB1YrVpqWAIFFewIA7FQu3fOER_zBfj_3kN8dG57Gbexf62sQZw9NIU4w5BQ0-X998a9W0
 // ============================================
 
 // ============================================
-// BACKEND CODE - Copy this to your server
-// ============================================
-// This code should run on your backend (Node.js/Express)
-// DO NOT expose your client secret in frontend code!
+// BACKEND CODE - COPY & PASTE READY
 // ============================================
 
 /*
-// === SERVER-SIDE CODE (Node.js/Express) ===
-// File: server/routes/paypal.js
+===============================================
+OPTION 1: NODE.JS/EXPRESS SERVER
+===============================================
+File: server/routes/paypal.js
+
+Copy the code below into your backend:
+-----------------------------------------------
 
 const express = require('express');
 const router = express.Router();
 
-// TODO: Replace with your real PayPal credentials
-const PAYPAL_CLIENT_ID = 'YOUR_PAYPAL_CLIENT_ID';
-const PAYPAL_CLIENT_SECRET = 'YOUR_PAYPAL_CLIENT_SECRET';
+// PayPal Sandbox Credentials (replace with production keys later)
+const PAYPAL_CLIENT_ID = 'AW1TZSnbXgP3a7THouEigNdhAcAGYlJkyDSiqKeT1lYmP-5_8coRKrhvaWE4PXimdy--pcsevSz0attv';
+const PAYPAL_SECRET = 'EKRycvvx78yB1YrVpqWAIFFewIA7FQu3fOER_zBfj_3kN8dG57Gbexf62sQZw9NIU4w5BQ0-X998a9W0';
 
-// Use sandbox for testing, live for production
-const PAYPAL_API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://api-m.paypal.com'
-  : 'https://api-m.sandbox.paypal.com';
+// Sandbox URL (change to https://api-m.paypal.com for production)
+const PAYPAL_API_URL = 'https://api-m.sandbox.paypal.com';
 
-// Get PayPal access token
+// Get PayPal Access Token
 async function getPayPalAccessToken() {
-  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
+  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`).toString('base64');
   
   const response = await fetch(`${PAYPAL_API_URL}/v1/oauth2/token`, {
     method: 'POST',
@@ -47,20 +48,24 @@ async function getPayPalAccessToken() {
   });
 
   const data = await response.json();
+  
+  if (!response.ok) {
+    console.error('PayPal Auth Error:', data);
+    throw new Error(data.error_description || 'Failed to get PayPal access token');
+  }
+  
   return data.access_token;
 }
 
-// Create PayPal Order
+// POST /api/paypal/create-order
 router.post('/create-order', async (req, res) => {
   try {
-    const { amount, currency = 'EUR', description } = req.body;
-
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Invalid amount' });
-    }
-
+    const { amount, currency = 'EUR', description, returnUrl, cancelUrl } = req.body;
+    
+    console.log('Creating PayPal order:', { amount, currency, description });
+    
     const accessToken = await getPayPalAccessToken();
-
+    
     const response = await fetch(`${PAYPAL_API_URL}/v2/checkout/orders`, {
       method: 'POST',
       headers: {
@@ -74,47 +79,47 @@ router.post('/create-order', async (req, res) => {
             currency_code: currency,
             value: amount.toFixed(2),
           },
-          description: description || 'Lageplan Bestellung',
+          description: description || 'Karten-Bestellung',
         }],
         application_context: {
-          brand_name: 'Lageplaner',
+          brand_name: 'Paul Müller-Zitzke Maps',
           landing_page: 'NO_PREFERENCE',
           user_action: 'PAY_NOW',
-          return_url: `${process.env.FRONTEND_URL}/success`,
-          cancel_url: `${process.env.FRONTEND_URL}/checkout`,
+          return_url: returnUrl || 'http://localhost:5173/success',
+          cancel_url: cancelUrl || 'http://localhost:5173/checkout',
         },
       }),
     });
 
     const order = await response.json();
     
-    console.log('✅ PayPal Order created:', order.id);
+    if (!response.ok) {
+      console.error('PayPal Create Order Error:', order);
+      throw new Error(order.message || 'Failed to create order');
+    }
 
+    console.log('✅ PayPal Order Created:', order.id);
+    
     res.json({
       success: true,
       orderId: order.id,
-      approvalUrl: order.links.find(link => link.rel === 'approve')?.href,
+      approvalUrl: order.links.find(l => l.rel === 'approve')?.href,
     });
   } catch (error) {
-    console.error('❌ PayPal Error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    console.error('❌ PayPal Create Order Error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Capture PayPal Order (after user approves)
+// POST /api/paypal/capture-order
 router.post('/capture-order', async (req, res) => {
   try {
     const { orderId } = req.body;
-
-    if (!orderId) {
-      return res.status(400).json({ error: 'Order ID required' });
-    }
-
+    
+    console.log('Capturing PayPal order:', orderId);
+    
     const accessToken = await getPayPalAccessToken();
-
+    
     const response = await fetch(`${PAYPAL_API_URL}/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
       headers: {
@@ -123,69 +128,219 @@ router.post('/capture-order', async (req, res) => {
       },
     });
 
-    const capture = await response.json();
-
-    if (capture.status === 'COMPLETED') {
-      console.log('✅ PayPal Payment captured:', orderId);
-      
-      // TODO: Fulfill the order, send email, etc.
-      
-      res.json({
-        success: true,
-        orderId: capture.id,
-        status: capture.status,
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        error: 'Payment not completed',
-        status: capture.status,
-      });
+    const captureData = await response.json();
+    
+    if (!response.ok) {
+      console.error('PayPal Capture Error:', captureData);
+      throw new Error(captureData.message || 'Failed to capture order');
     }
+
+    console.log('✅ PayPal Payment Captured:', captureData.id);
+    console.log('Status:', captureData.status);
+    
+    res.json({
+      success: true,
+      transactionId: captureData.id,
+      status: captureData.status,
+      payer: captureData.payer,
+    });
   } catch (error) {
     console.error('❌ PayPal Capture Error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
-
-// PayPal Webhook handler
-router.post('/webhook', async (req, res) => {
-  try {
-    const event = req.body;
-    
-    // TODO: Verify webhook signature for production
-    // https://developer.paypal.com/docs/api-basics/notifications/webhooks/
-
-    switch (event.event_type) {
-      case 'PAYMENT.CAPTURE.COMPLETED':
-        console.log('✅ Payment captured:', event.resource.id);
-        // TODO: Fulfill order
-        break;
-        
-      case 'PAYMENT.CAPTURE.DENIED':
-        console.log('❌ Payment denied:', event.resource.id);
-        // TODO: Notify customer
-        break;
-        
-      default:
-        console.log('Unhandled PayPal event:', event.event_type);
-    }
-
-    res.json({ received: true });
-  } catch (error) {
-    console.error('❌ PayPal Webhook Error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
 module.exports = router;
+
+-----------------------------------------------
+In your main server.js add:
+-----------------------------------------------
+
+const express = require('express');
+const cors = require('cors');
+const paypalRoutes = require('./routes/paypal');
+
+const app = express();
+
+app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(express.json());
+
+app.use('/api/paypal', paypalRoutes);
+
+app.listen(3001, () => {
+  console.log('Server running on http://localhost:3001');
+});
+
+===============================================
+*/
+
+/*
+===============================================
+OPTION 2: SUPABASE EDGE FUNCTION (Deno)
+===============================================
+File: supabase/functions/paypal/index.ts
+
+Copy the code below:
+-----------------------------------------------
+
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+
+// PayPal Sandbox Credentials
+const PAYPAL_CLIENT_ID = Deno.env.get('PAYPAL_CLIENT_ID') || 'AW1TZSnbXgP3a7THouEigNdhAcAGYlJkyDSiqKeT1lYmP-5_8coRKrhvaWE4PXimdy--pcsevSz0attv';
+const PAYPAL_SECRET = Deno.env.get('PAYPAL_SECRET') || 'EKRycvvx78yB1YrVpqWAIFFewIA7FQu3fOER_zBfj_3kN8dG57Gbexf62sQZw9NIU4w5BQ0-X998a9W0';
+const PAYPAL_API_URL = 'https://api-m.sandbox.paypal.com';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+async function getPayPalAccessToken(): Promise<string> {
+  const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`);
+  
+  const response = await fetch(`${PAYPAL_API_URL}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    console.error('PayPal Auth Error:', data);
+    throw new Error(data.error_description || 'Auth failed');
+  }
+  return data.access_token;
+}
+
+serve(async (req: Request) => {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const url = new URL(req.url);
+    const action = url.pathname.split('/').pop();
+    const body = await req.json();
+
+    // CREATE ORDER
+    if (action === 'create-order') {
+      const { amount, currency = 'EUR', description, returnUrl, cancelUrl } = body;
+      
+      console.log('Creating PayPal order:', { amount, currency, description });
+      
+      const accessToken = await getPayPalAccessToken();
+      
+      const response = await fetch(`${PAYPAL_API_URL}/v2/checkout/orders`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          intent: 'CAPTURE',
+          purchase_units: [{
+            amount: {
+              currency_code: currency,
+              value: amount.toFixed(2),
+            },
+            description: description || 'Karten-Bestellung',
+          }],
+          application_context: {
+            brand_name: 'Paul Müller-Zitzke Maps',
+            landing_page: 'NO_PREFERENCE',
+            user_action: 'PAY_NOW',
+            return_url: returnUrl,
+            cancel_url: cancelUrl,
+          },
+        }),
+      });
+
+      const order = await response.json();
+      
+      if (!response.ok) {
+        console.error('PayPal Create Order Error:', order);
+        throw new Error(order.message || 'Failed to create order');
+      }
+
+      console.log('✅ PayPal Order Created:', order.id);
+
+      return new Response(JSON.stringify({
+        success: true,
+        orderId: order.id,
+        approvalUrl: order.links.find((l: any) => l.rel === 'approve')?.href,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // CAPTURE ORDER
+    if (action === 'capture-order') {
+      const { orderId } = body;
+      
+      console.log('Capturing PayPal order:', orderId);
+      
+      const accessToken = await getPayPalAccessToken();
+      
+      const response = await fetch(`${PAYPAL_API_URL}/v2/checkout/orders/${orderId}/capture`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const captureData = await response.json();
+      
+      if (!response.ok) {
+        console.error('PayPal Capture Error:', captureData);
+        throw new Error(captureData.message || 'Failed to capture order');
+      }
+
+      console.log('✅ PayPal Payment Captured:', captureData.id);
+
+      return new Response(JSON.stringify({
+        success: true,
+        transactionId: captureData.id,
+        status: captureData.status,
+        payer: captureData.payer,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Unknown action' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error: any) {
+    console.error('❌ PayPal Error:', error);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message 
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
+
+-----------------------------------------------
+Add to supabase/config.toml:
+-----------------------------------------------
+
+[functions.paypal]
+verify_jwt = false
+
+===============================================
 */
 
 // ============================================
-// FRONTEND CODE - Use this in your React app
+// FRONTEND CODE (Ready to Use)
 // ============================================
 
 export interface PayPalOrderResult {
@@ -196,18 +351,16 @@ export interface PayPalOrderResult {
 }
 
 export interface CreatePayPalOrderRequest {
-  amount: number; // Amount in euros (not cents!)
+  amount: number; // Amount in EUR (not cents!)
   currency?: string;
   description?: string;
 }
 
-// TODO: Replace with your actual backend URL
-const BACKEND_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend.com/api' 
-  : 'http://localhost:3001/api';
+// Backend URL - Change this when you have a backend
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
 
 /**
- * Create a PayPal order via your backend
+ * Create a PayPal order via backend
  */
 export const createPayPalOrder = async (
   data: CreatePayPalOrderRequest
@@ -218,7 +371,13 @@ export const createPayPalOrder = async (
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        amount: data.amount,
+        currency: data.currency || 'EUR',
+        description: data.description || 'Karten-Bestellung',
+        returnUrl: `${window.location.origin}/success`,
+        cancelUrl: `${window.location.origin}/checkout`,
+      }),
     });
 
     if (!response.ok) {
@@ -246,7 +405,7 @@ export const createPayPalOrder = async (
  */
 export const capturePayPalOrder = async (
   orderId: string
-): Promise<{ success: boolean; error?: string }> => {
+): Promise<{ success: boolean; transactionId?: string; error?: string }> => {
   try {
     const response = await fetch(`${BACKEND_URL}/paypal/capture-order`, {
       method: 'POST',
@@ -261,7 +420,11 @@ export const capturePayPalOrder = async (
       throw new Error(errorData.error || 'Failed to capture PayPal payment');
     }
 
-    return { success: true };
+    const result = await response.json();
+    return { 
+      success: true,
+      transactionId: result.transactionId,
+    };
   } catch (error: any) {
     console.error('❌ PayPal Capture Error:', error);
     return {
@@ -271,69 +434,42 @@ export const capturePayPalOrder = async (
   }
 };
 
-// ============================================
-// PAYPAL REACT SDK SETUP
-// ============================================
-/*
-// Install: npm install @paypal/react-paypal-js
+/**
+ * Redirect user to PayPal for payment
+ */
+export const redirectToPayPal = (approvalUrl: string): void => {
+  window.location.href = approvalUrl;
+};
 
-// In your main App.tsx or a provider:
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
-
-// TODO: Replace with your PayPal client ID
-const PAYPAL_CLIENT_ID = 'YOUR_PAYPAL_CLIENT_ID';
-
-function App() {
-  return (
-    <PayPalScriptProvider options={{
-      'client-id': PAYPAL_CLIENT_ID,
-      currency: 'EUR',
-    }}>
-      <YourCheckoutComponent />
-    </PayPalScriptProvider>
-  );
-}
-
-// In your Checkout component:
-function PayPalCheckout({ amount, onSuccess, onError }) {
-  return (
-    <PayPalButtons
-      style={{ layout: 'vertical' }}
-      createOrder={async () => {
-        const result = await createPayPalOrder({
-          amount: amount,
-          currency: 'EUR',
-          description: 'Lageplan Bestellung',
-        });
-        
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-        
-        return result.orderId;
-      }}
-      onApprove={async (data) => {
-        const result = await capturePayPalOrder(data.orderID);
-        
-        if (result.success) {
-          onSuccess(data.orderID);
-        } else {
-          onError(result.error);
-        }
-      }}
-      onError={(err) => {
-        console.error('PayPal Error:', err);
-        onError('PayPal payment failed');
-      }}
-    />
-  );
-}
-*/
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
+/**
+ * Format amount for PayPal (2 decimal places)
+ */
 export const formatPayPalAmount = (euros: number): string => {
   return euros.toFixed(2);
 };
+
+// ============================================
+// CHECKOUT USAGE EXAMPLE
+// ============================================
+/*
+import { createPayPalOrder, redirectToPayPal } from '@/services/paypalService';
+import { toast } from 'sonner';
+
+const handlePayPalPayment = async () => {
+  setIsProcessing(true);
+  
+  const result = await createPayPalOrder({
+    amount: 29.99,  // EUR
+    currency: 'EUR',
+    description: 'Custom Map A4',
+  });
+
+  if (result.success && result.approvalUrl) {
+    // User wird zu PayPal weitergeleitet
+    redirectToPayPal(result.approvalUrl);
+  } else {
+    toast.error(result.error || 'PayPal Fehler');
+    setIsProcessing(false);
+  }
+};
+*/
