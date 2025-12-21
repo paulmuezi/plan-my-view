@@ -1,6 +1,11 @@
 // ============================================
 // PAYPAL SERVICE - PRODUCTION READY
 // ============================================
+// Merchant Account Details:
+// Name: Paul Müller-Zitzke
+// IBAN: DE40 1101 0101 5588 2656 09
+// BIC: SOBKDEB2XXX
+// ============================================
 // TODO: Replace with your real PayPal credentials
 // Get your credentials at: https://developer.paypal.com/
 // ============================================
