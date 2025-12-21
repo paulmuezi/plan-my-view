@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, FileText, FileCode, Check } from "lucide-react";
+import { ArrowLeft, CreditCard, FileText, FileCode, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/services/emailService";
@@ -23,6 +24,36 @@ interface CheckoutState {
   pinPosition?: { lat: number; lng: number };
 }
 
+interface CardDetails {
+  cardNumber: string;
+  expiryDate: string;
+  cvv: string;
+  cardHolder: string;
+}
+
+interface SepaDetails {
+  iban: string;
+  accountHolder: string;
+}
+
+const formatCardNumber = (value: string): string => {
+  const digits = value.replace(/\D/g, '').slice(0, 16);
+  return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+};
+
+const formatExpiryDate = (value: string): string => {
+  const digits = value.replace(/\D/g, '').slice(0, 4);
+  if (digits.length >= 2) {
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  }
+  return digits;
+};
+
+const formatIban = (value: string): string => {
+  const cleaned = value.replace(/\s/g, '').toUpperCase().slice(0, 22);
+  return cleaned.replace(/(.{4})/g, '$1 ').trim();
+};
+
 const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,6 +61,20 @@ const Checkout = () => {
   const state = location.state as CheckoutState | null;
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Card details state
+  const [cardDetails, setCardDetails] = useState<CardDetails>({
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardHolder: '',
+  });
+  
+  // SEPA details state
+  const [sepaDetails, setSepaDetails] = useState<SepaDetails>({
+    iban: '',
+    accountHolder: '',
+  });
 
   if (!state) {
     navigate("/editor");
@@ -40,9 +85,50 @@ const Checkout = () => {
   const basePrice = paperFormat === "A4" ? 10 : paperFormat === "A3" ? 15 : 20;
   const displayAddress = address ? address.split(",").slice(0, 3).join(",") : "Adresse nicht verfügbar";
 
+  const validateCardDetails = (): boolean => {
+    if (cardDetails.cardNumber.replace(/\s/g, '').length !== 16) {
+      toast.error("Bitte geben Sie eine gültige Kartennummer ein");
+      return false;
+    }
+    if (cardDetails.expiryDate.length !== 5) {
+      toast.error("Bitte geben Sie ein gültiges Ablaufdatum ein");
+      return false;
+    }
+    if (cardDetails.cvv.length < 3) {
+      toast.error("Bitte geben Sie einen gültigen CVV ein");
+      return false;
+    }
+    if (cardDetails.cardHolder.trim().length < 2) {
+      toast.error("Bitte geben Sie den Karteninhaber ein");
+      return false;
+    }
+    return true;
+  };
+
+  const validateSepaDetails = (): boolean => {
+    const cleanIban = sepaDetails.iban.replace(/\s/g, '');
+    if (cleanIban.length < 15 || cleanIban.length > 34) {
+      toast.error("Bitte geben Sie eine gültige IBAN ein");
+      return false;
+    }
+    if (sepaDetails.accountHolder.trim().length < 2) {
+      toast.error("Bitte geben Sie den Kontoinhaber ein");
+      return false;
+    }
+    return true;
+  };
+
   const handlePayment = async () => {
     if (!selectedPayment) {
       toast.error("Bitte wählen Sie eine Zahlungsmethode");
+      return;
+    }
+
+    // Validate based on payment method
+    if (selectedPayment === 'card' && !validateCardDetails()) {
+      return;
+    }
+    if (selectedPayment === 'sepa' && !validateSepaDetails()) {
       return;
     }
     
@@ -135,6 +221,153 @@ const Checkout = () => {
       toast.error("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const renderPaymentForm = () => {
+    if (!selectedPayment) return null;
+
+    switch (selectedPayment) {
+      case 'card':
+        return (
+          <Card className="mt-3">
+            <CardContent className="p-3 space-y-3">
+              <div>
+                <Label htmlFor="cardHolder" className="text-xs text-muted-foreground">Karteninhaber</Label>
+                <Input
+                  id="cardHolder"
+                  placeholder="Max Mustermann"
+                  value={cardDetails.cardHolder}
+                  onChange={(e) => setCardDetails(prev => ({ ...prev, cardHolder: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="cardNumber" className="text-xs text-muted-foreground">Kartennummer</Label>
+                <Input
+                  id="cardNumber"
+                  placeholder="1234 5678 9012 3456"
+                  value={cardDetails.cardNumber}
+                  onChange={(e) => setCardDetails(prev => ({ ...prev, cardNumber: formatCardNumber(e.target.value) }))}
+                  className="mt-1"
+                  maxLength={19}
+                />
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Label htmlFor="expiryDate" className="text-xs text-muted-foreground">Gültig bis</Label>
+                  <Input
+                    id="expiryDate"
+                    placeholder="MM/YY"
+                    value={cardDetails.expiryDate}
+                    onChange={(e) => setCardDetails(prev => ({ ...prev, expiryDate: formatExpiryDate(e.target.value) }))}
+                    className="mt-1"
+                    maxLength={5}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="cvv" className="text-xs text-muted-foreground">CVV</Label>
+                  <Input
+                    id="cvv"
+                    placeholder="123"
+                    value={cardDetails.cvv}
+                    onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
+                    className="mt-1"
+                    maxLength={4}
+                    type="password"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
+                <Lock className="w-3 h-3" />
+                <span>Sichere SSL-verschlüsselte Zahlung</span>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'paypal':
+        return (
+          <Card className="mt-3">
+            <CardContent className="p-4 text-center space-y-3">
+              <div className="w-16 h-16 mx-auto bg-[#003087] rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.067 8.478c.492.88.556 2.014.3 3.327-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 0 0-.794.68l-.04.22-.63 3.993-.032.17a.804.804 0 0 1-.794.679H8.044a.483.483 0 0 1-.477-.558L7.82 20.5l.164-1.035.012-.077a.805.805 0 0 1 .795-.68h.495c3.238 0 5.774-1.314 6.514-5.12.196-.998.187-1.836-.104-2.48a2.588 2.588 0 0 0-.628-.63z"/>
+                  <path d="M18.492 6.764a5.755 5.755 0 0 0-.716-.257 8.923 8.923 0 0 0-1.415-.227 16.64 16.64 0 0 0-1.784-.09H9.43a.805.805 0 0 0-.795.68l-1.113 7.054-.032.203a.805.805 0 0 1 .795-.68h1.655c3.833 0 6.834-1.557 7.71-6.06.026-.134.048-.264.067-.39a3.903 3.903 0 0 0-.608-.233h-.617z"/>
+                  <path d="M8.635 6.87a.805.805 0 0 1 .795-.68h5.148c.61 0 1.178.04 1.703.12.151.023.298.05.442.08.143.03.283.064.42.102.069.019.136.04.202.061.344.113.654.258.92.437.373-2.373-.003-3.988-1.287-5.45C15.54.032 13.286 0 11.557 0H5.57a.911.911 0 0 0-.9.77L2.003 19.504a.545.545 0 0 0 .539.63h3.92l.984-6.234 1.19-7.03z"/>
+                </svg>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Sie werden zu PayPal weitergeleitet, um die Zahlung abzuschließen.
+              </p>
+              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <Lock className="w-3 h-3" />
+                <span>Sichere Zahlung über PayPal</span>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'sepa':
+        return (
+          <Card className="mt-3">
+            <CardContent className="p-3 space-y-3">
+              <div>
+                <Label htmlFor="accountHolder" className="text-xs text-muted-foreground">Kontoinhaber</Label>
+                <Input
+                  id="accountHolder"
+                  placeholder="Max Mustermann"
+                  value={sepaDetails.accountHolder}
+                  onChange={(e) => setSepaDetails(prev => ({ ...prev, accountHolder: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="iban" className="text-xs text-muted-foreground">IBAN</Label>
+                <Input
+                  id="iban"
+                  placeholder="DE89 3704 0044 0532 0130 00"
+                  value={sepaDetails.iban}
+                  onChange={(e) => setSepaDetails(prev => ({ ...prev, iban: formatIban(e.target.value) }))}
+                  className="mt-1"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Mit dem Fortfahren erteilen Sie uns ein SEPA-Lastschriftmandat. Der Betrag wird innerhalb von 2-3 Werktagen abgebucht.
+              </p>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
+                <Lock className="w-3 h-3" />
+                <span>Sichere SSL-verschlüsselte Zahlung</span>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const isPaymentComplete = (): boolean => {
+    if (!selectedPayment) return false;
+    
+    switch (selectedPayment) {
+      case 'card':
+        return (
+          cardDetails.cardNumber.replace(/\s/g, '').length === 16 &&
+          cardDetails.expiryDate.length === 5 &&
+          cardDetails.cvv.length >= 3 &&
+          cardDetails.cardHolder.trim().length >= 2
+        );
+      case 'paypal':
+        return true; // PayPal just requires selection
+      case 'sepa':
+        return (
+          sepaDetails.iban.replace(/\s/g, '').length >= 15 &&
+          sepaDetails.accountHolder.trim().length >= 2
+        );
+      default:
+        return false;
     }
   };
 
@@ -266,6 +499,9 @@ const Checkout = () => {
                   {selectedPayment === "sepa" && <Check className="w-4 h-4 ml-auto" />}
                 </Button>
               </div>
+
+              {/* Payment Form based on selection */}
+              {renderPaymentForm()}
             </div>
           </div>
 
@@ -273,7 +509,7 @@ const Checkout = () => {
             <Button 
               className="w-full py-6 text-base font-semibold" 
               onClick={handlePayment}
-              disabled={isProcessing}
+              disabled={isProcessing || !isPaymentComplete()}
             >
               {isProcessing ? "Verarbeitung..." : `Jetzt bezahlen (${totalPrice}€)`}
             </Button>
