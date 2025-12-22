@@ -28,39 +28,30 @@ const Impressum = () => {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">Angaben gemäß § 5 TMG</h2>
             <p>
-              [Firmenname]<br />
-              [Straße und Hausnummer]<br />
-              [PLZ und Ort]
+              Daniel Müller-Zitzke und Paul Müller-Zitzke GbR<br />
+              Lehmbuschfeld 14<br />
+              30539 Hannover
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">Kontakt</h2>
             <p>
-              Telefon: [Telefonnummer]<br />
-              E-Mail: [E-Mail-Adresse]
+              Telefon: 015734748616<br />
+              E-Mail: info@lageplaner.de
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">Vertreten durch</h2>
-            <p>[Name des Vertretungsberechtigten]</p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">Registereintrag</h2>
-            <p>
-              Eintragung im Handelsregister<br />
-              Registergericht: [Amtsgericht]<br />
-              Registernummer: [HRB-Nummer]
-            </p>
+            <p>Daniel Müller-Zitzke und Paul Müller-Zitzke</p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">Umsatzsteuer-ID</h2>
             <p>
               Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br />
-              [USt-IdNr.]
+              DE454320505
             </p>
           </section>
 
