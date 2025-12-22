@@ -5,6 +5,12 @@ import { useMapSettings } from "@/contexts/MapContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+// Germany bounds for restricting the map view
+const GERMANY_BOUNDS: L.LatLngBoundsExpression = [
+  [47.27, 5.87], // Southwest
+  [55.1, 15.04], // Northeast
+];
+
 // Fix default marker icon
 const defaultIcon = L.icon({
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
@@ -103,11 +109,30 @@ const MapView = () => {
       center: initialCenter,
       zoom: initialZoom,
       zoomControl: false,
+      maxBounds: GERMANY_BOUNDS,
+      maxBoundsViscosity: 1.0,
+      minZoom: 6,
     });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
+
+    // Load and add Bavaria overlay (grayed out)
+    fetch("https://raw.githubusercontent.com/isellsoap/deutschern-and-maps/main/data/1_deutschland/4_laender/bayern.geo.json")
+      .then(res => res.json())
+      .then(bavariaGeoJson => {
+        L.geoJSON(bavariaGeoJson, {
+          style: {
+            fillColor: "#888888",
+            fillOpacity: 0.5,
+            color: "#666666",
+            weight: 2,
+          },
+          interactive: false,
+        }).addTo(map);
+      })
+      .catch(err => console.error("Failed to load Bavaria GeoJSON:", err));
 
     // Add zoom control to bottom left
     L.control.zoom({ position: "bottomleft" }).addTo(map);
