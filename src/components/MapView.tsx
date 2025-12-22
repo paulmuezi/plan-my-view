@@ -240,66 +240,108 @@ const MapView = () => {
       })
       .catch(err => console.error("Failed to load Germany GeoJSON:", err));
 
-    // Load Bavaria overlay - try multiple sources
-    const loadBavaria = async () => {
-      // Try primary source first
+    // Load Bavaria from OSM via Overpass API (official boundaries)
+    const loadBavariaFromOSM = async () => {
       try {
-        const res = await fetch("https://raw.githubusercontent.com/openpolitics/geojson-germany/refs/heads/main/states/bavaria.geojson");
+        // Overpass query for Bavaria (relation ID 2145268 = Freistaat Bayern)
+        const overpassQuery = `
+          [out:json][timeout:25];
+          relation(2145268);
+          out geom;
+        `;
+        
+        const response = await fetch("https://overpass-api.de/api/interpreter", {
+          method: "POST",
+          body: `data=${encodeURIComponent(overpassQuery)}`,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        });
+        
+        if (!response.ok) throw new Error("Overpass API request failed");
+        
+        const data = await response.json();
+        
+        if (data.elements && data.elements.length > 0) {
+          const relation = data.elements[0];
+          
+          // Convert OSM relation geometry to GeoJSON-like format for Leaflet
+          if (relation.members) {
+            const outerWays = relation.members.filter((m: any) => m.role === "outer" && m.geometry);
+            
+            if (outerWays.length > 0) {
+              // Combine all outer ways into polygons
+              const allCoords: L.LatLngExpression[][] = [];
+              
+              outerWays.forEach((way: any) => {
+                const coords: L.LatLngExpression[] = way.geometry.map((point: any) => 
+                  [point.lat, point.lon] as L.LatLngExpression
+                );
+                allCoords.push(coords);
+              });
+              
+              // Store for click detection
+              bavariaGeoJsonRef.current = {
+                type: "MultiPolygon",
+                coordinates: allCoords.map(ring => [ring.map(c => [c[1], c[0]])])
+              };
+              
+              // Add to map
+              L.polygon(allCoords, {
+                fillColor: "#cbd5e1",
+                fillOpacity: 0.7,
+                color: "#64748b",
+                weight: 2,
+                pane: "bavariaPane",
+                interactive: false,
+              }).addTo(map);
+              
+              console.log("Bavaria loaded from OSM Overpass API");
+              return;
+            }
+          }
+        }
+        
+        throw new Error("No valid geometry in response");
+      } catch (error) {
+        console.error("OSM Overpass failed, using fallback:", error);
+        loadBavariaFallback();
+      }
+    };
+    
+    // Fallback: Use a reliable GeoJSON source
+    const loadBavariaFallback = async () => {
+      try {
+        // Try GADM data which is very reliable
+        const res = await fetch("https://raw.githubusercontent.com/isellsoap/deutschlandGeoJSON/main/2_bundeslaender/1_sehr_hoch.geo.json");
         if (res.ok) {
-          const bavariaGeoJson = await res.json();
-          bavariaGeoJsonRef.current = bavariaGeoJson;
-          L.geoJSON(bavariaGeoJson, {
-            style: {
-              fillColor: "#cbd5e1",
-              fillOpacity: 0.75,
-              color: "#64748b",
-              weight: 2,
-            },
-            pane: "bavariaPane",
-            interactive: false,
-          }).addTo(map);
-          return;
+          const allStates = await res.json();
+          const bavaria = allStates.features?.find((f: any) => 
+            f.properties?.name === "Bayern" || f.properties?.NAME_1 === "Bayern"
+          );
+          
+          if (bavaria) {
+            bavariaGeoJsonRef.current = bavaria;
+            L.geoJSON(bavaria, {
+              style: {
+                fillColor: "#cbd5e1",
+                fillOpacity: 0.7,
+                color: "#64748b",
+                weight: 2,
+              },
+              pane: "bavariaPane",
+              interactive: false,
+            }).addTo(map);
+            console.log("Bavaria loaded from fallback GeoJSON");
+            return;
+          }
         }
       } catch (e) {
-        console.log("Primary Bavaria source failed, trying fallback...");
+        console.log("Fallback also failed");
       }
-
-      // Fallback: Create a simple Bavaria polygon from known coordinates
-      const bavariaCoords: L.LatLngExpression[] = [
-        [47.27, 8.97], [47.5, 9.5], [47.58, 10.18], [47.55, 10.45],
-        [47.4, 10.87], [47.31, 10.99], [47.42, 11.17], [47.49, 11.09],
-        [47.58, 11.21], [47.59, 11.86], [47.5, 12.13], [47.64, 12.22],
-        [47.68, 12.76], [47.63, 13.01], [47.72, 13.05], [47.84, 12.88],
-        [48.11, 12.86], [48.2, 13.02], [48.33, 13.03], [48.52, 13.44],
-        [48.77, 13.84], [49.02, 13.52], [49.12, 13.4], [49.31, 12.9],
-        [49.53, 12.52], [49.79, 12.48], [49.93, 12.4], [50.07, 12.32],
-        [50.27, 12.09], [50.32, 11.94], [50.39, 11.88], [50.47, 11.6],
-        [50.38, 11.23], [50.24, 11.04], [50.26, 10.73], [50.02, 10.44],
-        [49.87, 10.13], [49.79, 9.94], [49.58, 9.8], [49.43, 9.4],
-        [49.79, 9.11], [49.94, 9.4], [50.03, 9.51], [50.02, 9.87],
-        [49.91, 9.99], [49.8, 9.93], [49.65, 9.94], [49.47, 10.1],
-        [49.0, 10.13], [48.87, 10.12], [48.7, 10.04], [48.52, 10.03],
-        [48.4, 10.1], [48.13, 9.95], [47.98, 9.99], [47.82, 10.1],
-        [47.58, 9.6], [47.54, 9.48], [47.54, 9.6], [47.48, 9.73],
-        [47.27, 8.97]
-      ];
-      
-      bavariaGeoJsonRef.current = { 
-        type: "Polygon", 
-        coordinates: [bavariaCoords.map(c => [c[1], c[0]])] 
-      };
-      
-      L.polygon(bavariaCoords, {
-        fillColor: "#cbd5e1",
-        fillOpacity: 0.75,
-        color: "#64748b",
-        weight: 2,
-        pane: "bavariaPane",
-        interactive: false,
-      }).addTo(map);
     };
 
-    loadBavaria();
+    loadBavariaFromOSM();
 
     // Add zoom control to bottom left
     L.control.zoom({ position: "bottomleft" }).addTo(map);
