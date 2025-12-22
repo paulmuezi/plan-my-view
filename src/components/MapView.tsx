@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { useMapSettings } from "@/contexts/MapContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet-boundary-canvas";
 
 // Germany bounds for restricting the map view
 const GERMANY_BOUNDS: L.LatLngBoundsExpression = [
@@ -26,21 +25,9 @@ const defaultIcon = L.icon({
 const GERMANY_CENTER: L.LatLngExpression = [51.1657, 10.4515];
 const DEFAULT_ZOOM = 6;
 
-// GeoJSON URLs
+// GeoJSON URLs - using a simpler, more reliable source for Germany
 const GERMANY_GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
-const BAVARIA_GEOJSON_URL = "https://raw.githubusercontent.com/openpolitics/geojson-germany/refs/heads/main/states/bavaria.geojson";
-
-// Extend Leaflet types for boundary-canvas
-declare module "leaflet" {
-  namespace TileLayer {
-    class BoundaryCanvas extends L.TileLayer {
-      constructor(url: string, options?: L.TileLayerOptions & { boundary?: any });
-    }
-  }
-  namespace tileLayer {
-    function boundaryCanvas(url: string, options?: L.TileLayerOptions & { boundary?: any }): TileLayer.BoundaryCanvas;
-  }
-}
+const BAVARIA_GEOJSON_URL = "https://raw.githubusercontent.com/isellsoap/deutschern-and-maps/main/data/1_deutschland/4_laender/2_hoch.geo.json";
 
 interface SearchSuggestion {
   display_name: string;
@@ -99,10 +86,12 @@ const isPointInPolygon = (point: [number, number], polygon: number[][]): boolean
 
 // Check if point is in GeoJSON geometry
 const isPointInGeoJSON = (lat: number, lng: number, geoJson: any): boolean => {
-  if (!geoJson || !geoJson.geometry) return false;
+  if (!geoJson) return false;
+  
+  const geometry = geoJson.geometry || geoJson;
+  if (!geometry || !geometry.coordinates) return false;
   
   const point: [number, number] = [lng, lat]; // GeoJSON uses [lng, lat]
-  const geometry = geoJson.geometry;
   
   if (geometry.type === "Polygon") {
     return isPointInPolygon(point, geometry.coordinates[0]);
@@ -120,7 +109,6 @@ const MapView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [mapReady, setMapReady] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -179,11 +167,22 @@ const MapView = () => {
 
     mapRef.current = map;
 
-    // Create pane for Bavaria overlay
-    map.createPane("bavariaPane");
-    map.getPane("bavariaPane")!.style.zIndex = "450";
+    // Add OSM tile layer first (base layer)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
 
-    // Load Germany GeoJSON and create boundary canvas
+    // Create panes for proper layering
+    map.createPane("maskPane");
+    map.getPane("maskPane")!.style.zIndex = "400";
+    
+    map.createPane("borderPane");
+    map.getPane("borderPane")!.style.zIndex = "410";
+    
+    map.createPane("bavariaPane");
+    map.getPane("bavariaPane")!.style.zIndex = "420";
+
+    // Load Germany GeoJSON and create mask
     fetch(GERMANY_GEOJSON_URL)
       .then(res => res.json())
       .then(data => {
@@ -194,51 +193,113 @@ const MapView = () => {
         if (germany) {
           germanyGeoJsonRef.current = germany;
           
-          // Use BoundaryCanvas to clip tiles to Germany shape
-          const boundaryTiles = L.tileLayer.boundaryCanvas(
-            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            {
-              boundary: germany,
-              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            }
-          );
+          // Create outer world bounds (large rectangle)
+          const worldCoords: L.LatLngExpression[] = [
+            [-90, -180],
+            [-90, 180],
+            [90, 180],
+            [90, -180],
+          ];
           
-          boundaryTiles.addTo(map);
+          // Extract Germany coordinates for the hole
+          const germanyHoles: L.LatLngExpression[][] = [];
           
-          // Add Germany border for visual clarity
+          if (germany.geometry.type === "Polygon") {
+            germanyHoles.push(
+              germany.geometry.coordinates[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
+            );
+          } else if (germany.geometry.type === "MultiPolygon") {
+            germany.geometry.coordinates.forEach((polygon: number[][][]) => {
+              germanyHoles.push(
+                polygon[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
+              );
+            });
+          }
+          
+          // Create mask polygon (world with Germany as hole)
+          L.polygon([worldCoords, ...germanyHoles], {
+            fillColor: "#f1f5f9",
+            fillOpacity: 1,
+            stroke: false,
+            pane: "maskPane",
+            interactive: false,
+          }).addTo(map);
+          
+          // Add Germany border
           L.geoJSON(germany, {
             style: {
               fillColor: "transparent",
               fillOpacity: 0,
-              color: "#475569",
+              color: "#94a3b8",
               weight: 2,
             },
+            pane: "borderPane",
             interactive: false,
           }).addTo(map);
-          
-          setMapReady(true);
         }
       })
       .catch(err => console.error("Failed to load Germany GeoJSON:", err));
 
-    // Load Bavaria overlay
-    fetch(BAVARIA_GEOJSON_URL)
-      .then(res => res.json())
-      .then(bavariaGeoJson => {
-        bavariaGeoJsonRef.current = bavariaGeoJson;
-        
-        L.geoJSON(bavariaGeoJson, {
-          style: {
-            fillColor: "#94a3b8",
-            fillOpacity: 0.65,
-            color: "#64748b",
-            weight: 2,
-          },
-          pane: "bavariaPane",
-          interactive: false,
-        }).addTo(map);
-      })
-      .catch(err => console.error("Failed to load Bavaria GeoJSON:", err));
+    // Load Bavaria overlay - try multiple sources
+    const loadBavaria = async () => {
+      // Try primary source first
+      try {
+        const res = await fetch("https://raw.githubusercontent.com/openpolitics/geojson-germany/refs/heads/main/states/bavaria.geojson");
+        if (res.ok) {
+          const bavariaGeoJson = await res.json();
+          bavariaGeoJsonRef.current = bavariaGeoJson;
+          L.geoJSON(bavariaGeoJson, {
+            style: {
+              fillColor: "#cbd5e1",
+              fillOpacity: 0.75,
+              color: "#64748b",
+              weight: 2,
+            },
+            pane: "bavariaPane",
+            interactive: false,
+          }).addTo(map);
+          return;
+        }
+      } catch (e) {
+        console.log("Primary Bavaria source failed, trying fallback...");
+      }
+
+      // Fallback: Create a simple Bavaria polygon from known coordinates
+      const bavariaCoords: L.LatLngExpression[] = [
+        [47.27, 8.97], [47.5, 9.5], [47.58, 10.18], [47.55, 10.45],
+        [47.4, 10.87], [47.31, 10.99], [47.42, 11.17], [47.49, 11.09],
+        [47.58, 11.21], [47.59, 11.86], [47.5, 12.13], [47.64, 12.22],
+        [47.68, 12.76], [47.63, 13.01], [47.72, 13.05], [47.84, 12.88],
+        [48.11, 12.86], [48.2, 13.02], [48.33, 13.03], [48.52, 13.44],
+        [48.77, 13.84], [49.02, 13.52], [49.12, 13.4], [49.31, 12.9],
+        [49.53, 12.52], [49.79, 12.48], [49.93, 12.4], [50.07, 12.32],
+        [50.27, 12.09], [50.32, 11.94], [50.39, 11.88], [50.47, 11.6],
+        [50.38, 11.23], [50.24, 11.04], [50.26, 10.73], [50.02, 10.44],
+        [49.87, 10.13], [49.79, 9.94], [49.58, 9.8], [49.43, 9.4],
+        [49.79, 9.11], [49.94, 9.4], [50.03, 9.51], [50.02, 9.87],
+        [49.91, 9.99], [49.8, 9.93], [49.65, 9.94], [49.47, 10.1],
+        [49.0, 10.13], [48.87, 10.12], [48.7, 10.04], [48.52, 10.03],
+        [48.4, 10.1], [48.13, 9.95], [47.98, 9.99], [47.82, 10.1],
+        [47.58, 9.6], [47.54, 9.48], [47.54, 9.6], [47.48, 9.73],
+        [47.27, 8.97]
+      ];
+      
+      bavariaGeoJsonRef.current = { 
+        type: "Polygon", 
+        coordinates: [bavariaCoords.map(c => [c[1], c[0]])] 
+      };
+      
+      L.polygon(bavariaCoords, {
+        fillColor: "#cbd5e1",
+        fillOpacity: 0.75,
+        color: "#64748b",
+        weight: 2,
+        pane: "bavariaPane",
+        interactive: false,
+      }).addTo(map);
+    };
+
+    loadBavaria();
 
     // Add zoom control to bottom left
     L.control.zoom({ position: "bottomleft" }).addTo(map);
