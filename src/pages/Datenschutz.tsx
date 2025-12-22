@@ -128,20 +128,25 @@ const Datenschutz = () => {
             
             <h3 className="font-medium text-foreground mt-4 mb-1">Speicherdauer</h3>
             <p>
-              Wir speichern diese Daten in unseren Systemen bis die gesetzlichen Aufbewahrungsfristen abgelaufen sind. 
-              Diese betragen grundsätzlich 6 oder 10 Jahre aus Gründen der ordnungsmäßigen Buchführung und 
-              steuerrechtlichen Anforderungen.
+              Wir speichern diese Daten in unseren Systemen für 10 Jahre aus Gründen der ordnungsmäßigen Buchführung 
+              und steuerrechtlichen Anforderungen (§ 257 HGB, § 14 UStG).
+            </p>
+            
+            <h3 className="font-medium text-foreground mt-4 mb-1">Download-Links</h3>
+            <p>
+              Download-Links sind 30 Tage ab Kaufdatum gültig. Nach Ablauf dieser Frist werden die Download-Dateien 
+              automatisch aus dem System gelöscht.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">7. Zahlungsabwicklung und Drittlandtransfer</h2>
             <p>
-              Bei kostenpflichtigen Bestellungen werden Ihre Zahlungsdaten (z.B. Kreditkartendaten) an unseren 
-              Zahlungsdienstleister Stripe übermittelt. 
+              Bei kostenpflichtigen Bestellungen werden Ihre Zahlungsdaten an unseren Zahlungsdienstleister Stripe übermittelt:
             </p>
             <p className="mt-2">
-              <strong>Stripe, Inc.</strong><br />
+              <strong>Zahlungsanbieter:</strong><br />
+              Stripe, Inc.<br />
               510 Townsend Street, San Francisco, CA 94103, USA<br />
               Datenschutzerklärung: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://stripe.com/de/privacy</a>
             </p>
@@ -151,9 +156,9 @@ const Datenschutz = () => {
               zusätzlich Standard-Vertragsklauseln als Datenschutzgarantie.
             </p>
             <p className="mt-2">
-              Die Datenverarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung). 
-              Ihre Zahlungsdaten werden ausschließlich zur Abwicklung der Zahlung verwendet und nach Abschluss 
-              der Transaktion nicht bei uns gespeichert.
+              <strong>Datenverarbeitung:</strong> Die Datenverarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO 
+              (Vertragserfüllung). Ihre Zahlungsdaten werden ausschließlich zur Abwicklung der Zahlung verwendet und 
+              nach Abschluss der Transaktion nicht bei uns gespeichert.
             </p>
           </section>
 
@@ -200,7 +205,20 @@ const Datenschutz = () => {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">11. Änderung dieser Datenschutzerklärung</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">11. ALKIS-Daten und Datenlizenz</h2>
+            <p>
+              Die Lagepläne werden erstellt auf Basis von ALKIS-Daten (Amtliches Liegenschaftskatasterinformationssystem) 
+              der Bundesländer gemäß Datenlizenz Deutschland 2.0. Diese Daten sind Open-Data-Geodaten und unterliegen 
+              den Lizenzbedingungen der Datenlizenz Deutschland 2.0. Diese Daten werden von den Bundesländern und 
+              Katasterämtern bereitgestellt.
+            </p>
+            <p className="mt-2">
+              Weitere Informationen: <a href="https://www.geokommunikation.de" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://www.geokommunikation.de</a>
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-2">12. Änderung dieser Datenschutzerklärung</h2>
             <p>
               Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den aktuellen rechtlichen 
               Anforderungen entspricht oder um Änderungen unserer Leistungen in der Datenschutzerklärung umzusetzen. 
@@ -209,7 +227,7 @@ const Datenschutz = () => {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">12. Kontakt</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">13. Kontakt</h2>
             <p>
               Bei Fragen zum Datenschutz können Sie sich jederzeit an uns wenden:<br /><br />
               Daniel Müller-Zitzke und Paul Müller-Zitzke GbR<br />
