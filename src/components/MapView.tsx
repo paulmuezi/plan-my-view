@@ -25,9 +25,13 @@ const defaultIcon = L.icon({
 const GERMANY_CENTER: L.LatLngExpression = [51.1657, 10.4515];
 const DEFAULT_ZOOM = 6;
 
-// GeoJSON URLs - using a simpler, more reliable source for Germany
-const GERMANY_GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
-const BAVARIA_GEOJSON_URL = "https://raw.githubusercontent.com/isellsoap/deutschern-and-maps/main/data/1_deutschland/4_laender/2_hoch.geo.json";
+// All German states for loading boundaries
+const GERMAN_STATES = [
+  "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", "Bremen",
+  "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen",
+  "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen",
+  "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen"
+];
 
 interface SearchSuggestion {
   display_name: string;
@@ -104,6 +108,48 @@ const isPointInGeoJSON = (lat: number, lng: number, geoJson: any): boolean => {
   return false;
 };
 
+// Create SVG pattern for hatching effect
+const createHatchPattern = () => {
+  const svgNS = "http://www.w3.org/2000/svg";
+  
+  // Check if pattern already exists
+  if (document.getElementById("hatch-pattern-defs")) return;
+  
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("id", "hatch-pattern-defs");
+  svg.setAttribute("width", "0");
+  svg.setAttribute("height", "0");
+  svg.style.position = "absolute";
+  
+  const defs = document.createElementNS(svgNS, "defs");
+  
+  const pattern = document.createElementNS(svgNS, "pattern");
+  pattern.setAttribute("id", "hatch");
+  pattern.setAttribute("patternUnits", "userSpaceOnUse");
+  pattern.setAttribute("width", "8");
+  pattern.setAttribute("height", "8");
+  pattern.setAttribute("patternTransform", "rotate(45)");
+  
+  const rect = document.createElementNS(svgNS, "rect");
+  rect.setAttribute("width", "8");
+  rect.setAttribute("height", "8");
+  rect.setAttribute("fill", "#e2e8f0");
+  
+  const line = document.createElementNS(svgNS, "line");
+  line.setAttribute("x1", "0");
+  line.setAttribute("y1", "0");
+  line.setAttribute("x2", "0");
+  line.setAttribute("y2", "8");
+  line.setAttribute("stroke", "#94a3b8");
+  line.setAttribute("stroke-width", "3");
+  
+  pattern.appendChild(rect);
+  pattern.appendChild(line);
+  defs.appendChild(pattern);
+  svg.appendChild(defs);
+  document.body.appendChild(svg);
+};
+
 const MapView = () => {
   const { pinPosition, setPinPosition, setAddress, paperFormat, orientation, scale } = useMapSettings();
   const [searchQuery, setSearchQuery] = useState("");
@@ -150,6 +196,9 @@ const MapView = () => {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    // Create hatch pattern for Bavaria
+    createHatchPattern();
+
     // Use stored pin position as center if available
     const initialCenter: L.LatLngExpression = pinPosition 
       ? [pinPosition.lat, pinPosition.lng] 
@@ -167,17 +216,25 @@ const MapView = () => {
 
     mapRef.current = map;
 
-    // Add OSM tile layer first (base layer)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    // Option 5: Use CartoDB Positron (cleaner, more subtle map style)
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 20,
     }).addTo(map);
 
     // Create panes for proper layering
     map.createPane("maskPane");
     map.getPane("maskPane")!.style.zIndex = "400";
     
+    map.createPane("shadowPane");
+    map.getPane("shadowPane")!.style.zIndex = "405";
+    
     map.createPane("borderPane");
     map.getPane("borderPane")!.style.zIndex = "410";
+    
+    map.createPane("statesPane");
+    map.getPane("statesPane")!.style.zIndex = "415";
     
     map.createPane("bavariaPane");
     map.getPane("bavariaPane")!.style.zIndex = "420";
@@ -209,17 +266,12 @@ const MapView = () => {
       return [worldCoords, ...holes];
     };
 
-    // Load Germany boundary from OSM Nominatim (returns proper GeoJSON)
+    // Load Germany boundary from OSM Nominatim
     const loadGermanyFromOSM = async () => {
       try {
-        // Nominatim with polygon_geojson returns the boundary as proper GeoJSON
         const response = await fetch(
           "https://nominatim.openstreetmap.org/search?q=Germany&format=geojson&polygon_geojson=1&limit=1",
-          {
-            headers: {
-              "User-Agent": "MapEditor/1.0",
-            },
-          }
+          { headers: { "User-Agent": "MapEditor/1.0" } }
         );
         
         if (!response.ok) throw new Error("Nominatim request failed");
@@ -233,85 +285,142 @@ const MapView = () => {
           // Create mask (world with Germany hole)
           const maskCoords = createMaskFromGeoJSON(germany);
           L.polygon(maskCoords, {
-            fillColor: "#f1f5f9",
+            fillColor: "#f8fafc",
             fillOpacity: 1,
             stroke: false,
             pane: "maskPane",
             interactive: false,
           }).addTo(map);
           
-          // Add Germany border
+          // Option 2: Add shadow effect (multiple borders with decreasing opacity)
+          const shadowColors = [
+            { color: "#94a3b8", weight: 12, opacity: 0.1 },
+            { color: "#94a3b8", weight: 8, opacity: 0.15 },
+            { color: "#94a3b8", weight: 5, opacity: 0.2 },
+          ];
+          
+          shadowColors.forEach(({ color, weight, opacity }) => {
+            L.geoJSON(germany, {
+              style: {
+                fillColor: "transparent",
+                fillOpacity: 0,
+                color,
+                weight,
+                opacity,
+              },
+              pane: "shadowPane",
+              interactive: false,
+            }).addTo(map);
+          });
+          
+          // Main Germany border
           L.geoJSON(germany, {
             style: {
               fillColor: "transparent",
               fillOpacity: 0,
-              color: "#94a3b8",
-              weight: 2,
+              color: "#475569",
+              weight: 2.5,
             },
             pane: "borderPane",
             interactive: false,
           }).addTo(map);
           
           console.log("Germany loaded from OSM Nominatim");
-          return;
         }
-        
-        throw new Error("No Germany data found");
       } catch (error) {
-        console.error("OSM Nominatim failed for Germany, using fallback:", error);
-        loadGermanyFallback();
-      }
-    };
-    
-    const loadGermanyFallback = async () => {
-      try {
-        const res = await fetch(GERMANY_GEOJSON_URL);
-        const data = await res.json();
-        const germany = data.features.find(
-          (f: any) => f.properties.ADMIN === "Germany" || f.properties.name === "Germany"
-        );
-        
-        if (germany) {
-          germanyGeoJsonRef.current = germany;
-          
-          const maskCoords = createMaskFromGeoJSON(germany);
-          L.polygon(maskCoords, {
-            fillColor: "#f1f5f9",
-            fillOpacity: 1,
-            stroke: false,
-            pane: "maskPane",
-            interactive: false,
-          }).addTo(map);
-          
-          L.geoJSON(germany, {
-            style: {
-              fillColor: "transparent",
-              fillOpacity: 0,
-              color: "#94a3b8",
-              weight: 2,
-            },
-            pane: "borderPane",
-            interactive: false,
-          }).addTo(map);
-        }
-      } catch (err) {
-        console.error("Failed to load Germany:", err);
+        console.error("OSM Nominatim failed for Germany:", error);
       }
     };
 
-    // Load Bavaria boundary from OSM Nominatim
-    const loadBavariaFromOSM = async () => {
+    // Option 1: Load all Bundesländer boundaries
+    const loadAllStates = async () => {
+      try {
+        // Use a reliable GeoJSON source for all German states
+        const res = await fetch("https://raw.githubusercontent.com/isellsoap/deutschlandGeoJSON/main/2_bundeslaender/2_hoch.geo.json");
+        if (!res.ok) throw new Error("Failed to fetch states");
+        
+        const data = await res.json();
+        
+        if (data.features) {
+          data.features.forEach((state: any) => {
+            const stateName = state.properties?.name || state.properties?.NAME_1;
+            const isBavaria = stateName === "Bayern";
+            
+            if (isBavaria) {
+              // Store Bavaria for click detection
+              bavariaGeoJsonRef.current = state;
+              
+              // Option 4: Bavaria with hatching pattern
+              // First add a base layer
+              L.geoJSON(state, {
+                style: {
+                  fillColor: "#e2e8f0",
+                  fillOpacity: 0.85,
+                  color: "#64748b",
+                  weight: 2,
+                },
+                pane: "bavariaPane",
+                interactive: false,
+              }).addTo(map);
+              
+              // Add diagonal stripes overlay using canvas
+              const bavariaLayer = L.geoJSON(state, {
+                style: {
+                  fillColor: "#cbd5e1",
+                  fillOpacity: 0,
+                  color: "#475569",
+                  weight: 2,
+                  dashArray: "5, 5",
+                },
+                pane: "bavariaPane",
+                interactive: false,
+              }).addTo(map);
+              
+              // Create stripe pattern with SVG overlay
+              const bounds = bavariaLayer.getBounds();
+              const stripesSVG = `
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="bavStripes" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+                      <line x1="0" y1="0" x2="0" y2="10" stroke="#94a3b8" stroke-width="2" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#bavStripes)" opacity="0.4" />
+                </svg>
+              `;
+              
+            } else {
+              // Other states: just show subtle border
+              L.geoJSON(state, {
+                style: {
+                  fillColor: "transparent",
+                  fillOpacity: 0,
+                  color: "#cbd5e1",
+                  weight: 1,
+                },
+                pane: "statesPane",
+                interactive: false,
+              }).addTo(map);
+            }
+          });
+          
+          console.log("All German states loaded");
+        }
+      } catch (error) {
+        console.error("Failed to load German states:", error);
+        // Fallback: Load just Bavaria
+        loadBavariaFallback();
+      }
+    };
+    
+    const loadBavariaFallback = async () => {
       try {
         const response = await fetch(
           "https://nominatim.openstreetmap.org/search?q=Bavaria,Germany&format=geojson&polygon_geojson=1&limit=1",
-          {
-            headers: {
-              "User-Agent": "MapEditor/1.0",
-            },
-          }
+          { headers: { "User-Agent": "MapEditor/1.0" } }
         );
         
-        if (!response.ok) throw new Error("Nominatim request failed");
+        if (!response.ok) return;
         
         const data = await response.json();
         
@@ -321,57 +430,23 @@ const MapView = () => {
           
           L.geoJSON(bavaria, {
             style: {
-              fillColor: "#cbd5e1",
-              fillOpacity: 0.7,
+              fillColor: "#e2e8f0",
+              fillOpacity: 0.8,
               color: "#64748b",
               weight: 2,
             },
             pane: "bavariaPane",
             interactive: false,
           }).addTo(map);
-          
-          console.log("Bavaria loaded from OSM Nominatim");
-          return;
-        }
-        
-        throw new Error("No Bavaria data found");
-      } catch (error) {
-        console.error("OSM Nominatim failed for Bavaria, using fallback:", error);
-        loadBavariaFallback();
-      }
-    };
-    
-    const loadBavariaFallback = async () => {
-      try {
-        const res = await fetch("https://raw.githubusercontent.com/isellsoap/deutschlandGeoJSON/main/2_bundeslaender/1_sehr_hoch.geo.json");
-        if (res.ok) {
-          const allStates = await res.json();
-          const bavaria = allStates.features?.find((f: any) => 
-            f.properties?.name === "Bayern" || f.properties?.NAME_1 === "Bayern"
-          );
-          
-          if (bavaria) {
-            bavariaGeoJsonRef.current = bavaria;
-            L.geoJSON(bavaria, {
-              style: {
-                fillColor: "#cbd5e1",
-                fillOpacity: 0.7,
-                color: "#64748b",
-                weight: 2,
-              },
-              pane: "bavariaPane",
-              interactive: false,
-            }).addTo(map);
-          }
         }
       } catch (e) {
         console.log("Bavaria fallback failed");
       }
     };
 
-    // Load both boundaries from OSM
+    // Load boundaries
     loadGermanyFromOSM();
-    loadBavariaFromOSM();
+    loadAllStates();
 
     // Add zoom control to bottom left
     L.control.zoom({ position: "bottomleft" }).addTo(map);
@@ -529,10 +604,7 @@ const MapView = () => {
       <div 
         ref={mapContainerRef} 
         className="absolute inset-0 w-full h-full"
-        style={{ 
-          filter: "saturate(0.9)",
-          backgroundColor: "#f8fafc",
-        }}
+        style={{ backgroundColor: "#f8fafc" }}
       />
 
       {/* Search Bar with Autocomplete */}
@@ -545,12 +617,12 @@ const MapView = () => {
             value={searchQuery}
             onChange={handleInputChange}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-            className="pl-8 h-9 text-sm bg-card shadow-md border-border"
+            className="pl-8 h-9 text-sm bg-card/95 backdrop-blur-sm shadow-lg border-border/50"
           />
         </div>
         
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg overflow-hidden">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-card/95 backdrop-blur-sm border border-border/50 rounded-md shadow-lg overflow-hidden">
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
@@ -570,7 +642,7 @@ const MapView = () => {
 
       {/* Bbox info */}
       {pinPosition && (
-        <div className="absolute bottom-3 right-3 flex items-center gap-2 bg-card shadow-sm rounded px-2 py-1 z-[1000]">
+        <div className="absolute bottom-3 right-3 flex items-center gap-2 bg-card/95 backdrop-blur-sm shadow-lg rounded-lg px-3 py-1.5 z-[1000]">
           <div className="w-3 h-3 border-2 border-primary bg-primary/10 rounded-sm" />
           <span className="text-xs text-muted-foreground">
             {paperFormat} {orientation} · {scale} ({bboxInfo.widthMeters}m × {bboxInfo.heightMeters}m)
