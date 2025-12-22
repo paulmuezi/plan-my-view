@@ -182,42 +182,57 @@ const MapView = () => {
     map.createPane("bavariaPane");
     map.getPane("bavariaPane")!.style.zIndex = "420";
 
-    // Load Germany GeoJSON and create mask
-    fetch(GERMANY_GEOJSON_URL)
-      .then(res => res.json())
-      .then(data => {
-        const germany = data.features.find(
-          (f: any) => f.properties.ADMIN === "Germany" || f.properties.name === "Germany"
+    // Helper: Create mask from GeoJSON (world with hole)
+    const createMaskFromGeoJSON = (geoJson: any) => {
+      const worldCoords: L.LatLngExpression[] = [
+        [-90, -180],
+        [-90, 180],
+        [90, 180],
+        [90, -180],
+      ];
+      
+      const holes: L.LatLngExpression[][] = [];
+      const geometry = geoJson.geometry || geoJson;
+      
+      if (geometry.type === "Polygon") {
+        holes.push(
+          geometry.coordinates[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
+        );
+      } else if (geometry.type === "MultiPolygon") {
+        geometry.coordinates.forEach((polygon: number[][][]) => {
+          holes.push(
+            polygon[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
+          );
+        });
+      }
+      
+      return [worldCoords, ...holes];
+    };
+
+    // Load Germany boundary from OSM Nominatim (returns proper GeoJSON)
+    const loadGermanyFromOSM = async () => {
+      try {
+        // Nominatim with polygon_geojson returns the boundary as proper GeoJSON
+        const response = await fetch(
+          "https://nominatim.openstreetmap.org/search?q=Germany&format=geojson&polygon_geojson=1&limit=1",
+          {
+            headers: {
+              "User-Agent": "MapEditor/1.0",
+            },
+          }
         );
         
-        if (germany) {
+        if (!response.ok) throw new Error("Nominatim request failed");
+        
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          const germany = data.features[0];
           germanyGeoJsonRef.current = germany;
           
-          // Create outer world bounds (large rectangle)
-          const worldCoords: L.LatLngExpression[] = [
-            [-90, -180],
-            [-90, 180],
-            [90, 180],
-            [90, -180],
-          ];
-          
-          // Extract Germany coordinates for the hole
-          const germanyHoles: L.LatLngExpression[][] = [];
-          
-          if (germany.geometry.type === "Polygon") {
-            germanyHoles.push(
-              germany.geometry.coordinates[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
-            );
-          } else if (germany.geometry.type === "MultiPolygon") {
-            germany.geometry.coordinates.forEach((polygon: number[][][]) => {
-              germanyHoles.push(
-                polygon[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
-              );
-            });
-          }
-          
-          // Create mask polygon (world with Germany as hole)
-          L.polygon([worldCoords, ...germanyHoles], {
+          // Create mask (world with Germany hole)
+          const maskCoords = createMaskFromGeoJSON(germany);
+          L.polygon(maskCoords, {
             fillColor: "#f1f5f9",
             fillOpacity: 1,
             stroke: false,
@@ -236,83 +251,98 @@ const MapView = () => {
             pane: "borderPane",
             interactive: false,
           }).addTo(map);
+          
+          console.log("Germany loaded from OSM Nominatim");
+          return;
         }
-      })
-      .catch(err => console.error("Failed to load Germany GeoJSON:", err));
+        
+        throw new Error("No Germany data found");
+      } catch (error) {
+        console.error("OSM Nominatim failed for Germany, using fallback:", error);
+        loadGermanyFallback();
+      }
+    };
+    
+    const loadGermanyFallback = async () => {
+      try {
+        const res = await fetch(GERMANY_GEOJSON_URL);
+        const data = await res.json();
+        const germany = data.features.find(
+          (f: any) => f.properties.ADMIN === "Germany" || f.properties.name === "Germany"
+        );
+        
+        if (germany) {
+          germanyGeoJsonRef.current = germany;
+          
+          const maskCoords = createMaskFromGeoJSON(germany);
+          L.polygon(maskCoords, {
+            fillColor: "#f1f5f9",
+            fillOpacity: 1,
+            stroke: false,
+            pane: "maskPane",
+            interactive: false,
+          }).addTo(map);
+          
+          L.geoJSON(germany, {
+            style: {
+              fillColor: "transparent",
+              fillOpacity: 0,
+              color: "#94a3b8",
+              weight: 2,
+            },
+            pane: "borderPane",
+            interactive: false,
+          }).addTo(map);
+        }
+      } catch (err) {
+        console.error("Failed to load Germany:", err);
+      }
+    };
 
-    // Load Bavaria from OSM via Overpass API (official boundaries)
+    // Load Bavaria boundary from OSM Nominatim
     const loadBavariaFromOSM = async () => {
       try {
-        // Overpass query for Bavaria (relation ID 2145268 = Freistaat Bayern)
-        const overpassQuery = `
-          [out:json][timeout:25];
-          relation(2145268);
-          out geom;
-        `;
+        const response = await fetch(
+          "https://nominatim.openstreetmap.org/search?q=Bavaria,Germany&format=geojson&polygon_geojson=1&limit=1",
+          {
+            headers: {
+              "User-Agent": "MapEditor/1.0",
+            },
+          }
+        );
         
-        const response = await fetch("https://overpass-api.de/api/interpreter", {
-          method: "POST",
-          body: `data=${encodeURIComponent(overpassQuery)}`,
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        });
-        
-        if (!response.ok) throw new Error("Overpass API request failed");
+        if (!response.ok) throw new Error("Nominatim request failed");
         
         const data = await response.json();
         
-        if (data.elements && data.elements.length > 0) {
-          const relation = data.elements[0];
+        if (data.features && data.features.length > 0) {
+          const bavaria = data.features[0];
+          bavariaGeoJsonRef.current = bavaria;
           
-          // Convert OSM relation geometry to GeoJSON-like format for Leaflet
-          if (relation.members) {
-            const outerWays = relation.members.filter((m: any) => m.role === "outer" && m.geometry);
-            
-            if (outerWays.length > 0) {
-              // Combine all outer ways into polygons
-              const allCoords: L.LatLngExpression[][] = [];
-              
-              outerWays.forEach((way: any) => {
-                const coords: L.LatLngExpression[] = way.geometry.map((point: any) => 
-                  [point.lat, point.lon] as L.LatLngExpression
-                );
-                allCoords.push(coords);
-              });
-              
-              // Store for click detection
-              bavariaGeoJsonRef.current = {
-                type: "MultiPolygon",
-                coordinates: allCoords.map(ring => [ring.map(c => [c[1], c[0]])])
-              };
-              
-              // Add to map
-              L.polygon(allCoords, {
-                fillColor: "#cbd5e1",
-                fillOpacity: 0.7,
-                color: "#64748b",
-                weight: 2,
-                pane: "bavariaPane",
-                interactive: false,
-              }).addTo(map);
-              
-              console.log("Bavaria loaded from OSM Overpass API");
-              return;
-            }
-          }
+          L.geoJSON(bavaria, {
+            style: {
+              fillColor: "#cbd5e1",
+              fillOpacity: 0.7,
+              color: "#64748b",
+              weight: 2,
+            },
+            pane: "bavariaPane",
+            interactive: false,
+          }).addTo(map);
+          
+          console.log("Bavaria loaded from OSM Nominatim");
+          return;
         }
         
-        throw new Error("No valid geometry in response");
+        throw new Error("No Bavaria data found");
       } catch (error) {
-        console.error("OSM Overpass failed, using fallback:", error);
+        console.error("OSM Nominatim failed for Bavaria, using fallback:", error);
         loadBavariaFallback();
       }
     };
     
-    // Fallback: Use a reliable GeoJSON source
     const loadBavariaFallback = async () => {
       try {
-        // Try GADM data which is very reliable
         const res = await fetch("https://raw.githubusercontent.com/isellsoap/deutschlandGeoJSON/main/2_bundeslaender/1_sehr_hoch.geo.json");
         if (res.ok) {
           const allStates = await res.json();
@@ -332,15 +362,15 @@ const MapView = () => {
               pane: "bavariaPane",
               interactive: false,
             }).addTo(map);
-            console.log("Bavaria loaded from fallback GeoJSON");
-            return;
           }
         }
       } catch (e) {
-        console.log("Fallback also failed");
+        console.log("Bavaria fallback failed");
       }
     };
 
+    // Load both boundaries from OSM
+    loadGermanyFromOSM();
     loadBavariaFromOSM();
 
     // Add zoom control to bottom left
