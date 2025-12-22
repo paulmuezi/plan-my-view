@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useMapSettings } from "@/contexts/MapContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet-boundary-canvas";
 
 // Germany bounds for restricting the map view
 const GERMANY_BOUNDS: L.LatLngBoundsExpression = [
@@ -28,6 +29,18 @@ const DEFAULT_ZOOM = 6;
 // GeoJSON URLs
 const GERMANY_GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
 const BAVARIA_GEOJSON_URL = "https://raw.githubusercontent.com/openpolitics/geojson-germany/refs/heads/main/states/bavaria.geojson";
+
+// Extend Leaflet types for boundary-canvas
+declare module "leaflet" {
+  namespace TileLayer {
+    class BoundaryCanvas extends L.TileLayer {
+      constructor(url: string, options?: L.TileLayerOptions & { boundary?: any });
+    }
+  }
+  namespace tileLayer {
+    function boundaryCanvas(url: string, options?: L.TileLayerOptions & { boundary?: any }): TileLayer.BoundaryCanvas;
+  }
+}
 
 interface SearchSuggestion {
   display_name: string;
@@ -107,6 +120,7 @@ const MapView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -163,29 +177,13 @@ const MapView = () => {
       minZoom: 6,
     });
 
-    // Create panes for layering
-    map.createPane("backgroundPane");
-    map.getPane("backgroundPane")!.style.zIndex = "200";
-    
-    map.createPane("tilesPane");
-    map.getPane("tilesPane")!.style.zIndex = "300";
-    
-    map.createPane("maskPane");
-    map.getPane("maskPane")!.style.zIndex = "400";
-    
+    mapRef.current = map;
+
+    // Create pane for Bavaria overlay
     map.createPane("bavariaPane");
     map.getPane("bavariaPane")!.style.zIndex = "450";
-    
-    map.createPane("borderPane");
-    map.getPane("borderPane")!.style.zIndex = "500";
 
-    // Add OSM tile layer
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      pane: "tilesPane",
-    }).addTo(map);
-
-    // Load Germany GeoJSON and create mask
+    // Load Germany GeoJSON and create boundary canvas
     fetch(GERMANY_GEOJSON_URL)
       .then(res => res.json())
       .then(data => {
@@ -196,51 +194,29 @@ const MapView = () => {
         if (germany) {
           germanyGeoJsonRef.current = germany;
           
-          // Create a world polygon with a hole for Germany (mask effect)
-          const worldCoords: L.LatLngExpression[] = [
-            [-90, -180],
-            [-90, 180],
-            [90, 180],
-            [90, -180],
-            [-90, -180],
-          ];
+          // Use BoundaryCanvas to clip tiles to Germany shape
+          const boundaryTiles = L.tileLayer.boundaryCanvas(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+              boundary: germany,
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            }
+          );
           
-          // Extract Germany coordinates for the hole
-          const germanyCoords: L.LatLngExpression[][] = [];
+          boundaryTiles.addTo(map);
           
-          if (germany.geometry.type === "Polygon") {
-            germanyCoords.push(
-              germany.geometry.coordinates[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
-            );
-          } else if (germany.geometry.type === "MultiPolygon") {
-            germany.geometry.coordinates.forEach((polygon: number[][][]) => {
-              germanyCoords.push(
-                polygon[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
-              );
-            });
-          }
-          
-          // Create mask polygon (world with Germany hole)
-          const maskPolygon = L.polygon([worldCoords, ...germanyCoords], {
-            fillColor: "#f1f5f9",
-            fillOpacity: 1,
-            color: "transparent",
-            weight: 0,
-            pane: "maskPane",
-            interactive: false,
-          }).addTo(map);
-          
-          // Add Germany border
+          // Add Germany border for visual clarity
           L.geoJSON(germany, {
             style: {
               fillColor: "transparent",
               fillOpacity: 0,
-              color: "#64748b",
+              color: "#475569",
               weight: 2,
             },
-            pane: "borderPane",
             interactive: false,
           }).addTo(map);
+          
+          setMapReady(true);
         }
       })
       .catch(err => console.error("Failed to load Germany GeoJSON:", err));
@@ -254,7 +230,7 @@ const MapView = () => {
         L.geoJSON(bavariaGeoJson, {
           style: {
             fillColor: "#94a3b8",
-            fillOpacity: 0.7,
+            fillOpacity: 0.65,
             color: "#64748b",
             weight: 2,
           },
@@ -292,8 +268,6 @@ const MapView = () => {
         console.error("Reverse geocoding error:", error);
       }
     });
-
-    mapRef.current = map;
 
     return () => {
       map.remove();
@@ -417,12 +391,15 @@ const MapView = () => {
   const bboxInfo = getBboxInfo();
 
   return (
-    <div className="relative flex-1 h-full overflow-hidden bg-muted">
+    <div className="relative flex-1 h-full overflow-hidden" style={{ backgroundColor: "#f8fafc" }}>
       {/* Leaflet Map */}
       <div 
         ref={mapContainerRef} 
         className="absolute inset-0 w-full h-full"
-        style={{ filter: "saturate(0.9)" }}
+        style={{ 
+          filter: "saturate(0.9)",
+          backgroundColor: "#f8fafc",
+        }}
       />
 
       {/* Search Bar with Autocomplete */}
