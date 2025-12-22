@@ -234,9 +234,6 @@ const MapView = () => {
     
     map.createPane("bavariaPane");
     map.getPane("bavariaPane")!.style.zIndex = "420";
-    
-    map.createPane("labelsPane");
-    map.getPane("labelsPane")!.style.zIndex = "430";
 
     // Helper: Create mask from GeoJSON (world with hole)
     const createMaskFromGeoJSON = (geoJson: any) => {
@@ -310,143 +307,74 @@ const MapView = () => {
       }
     };
 
-    // Load all Bundesländer boundaries from OSM Nominatim (exact OSM data)
-    const loadAllStatesFromOSM = async () => {
-      const stateNames = [
-        "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", "Bremen",
-        "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen",
-        "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen",
-        "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen"
-      ];
-      
-      // Short labels for display
-      const stateLabels: Record<string, string> = {
-        "Baden-Württemberg": "Baden-Württemberg",
-        "Bayern": "Bayern",
-        "Berlin": "Berlin",
-        "Brandenburg": "Brandenburg",
-        "Bremen": "Bremen",
-        "Hamburg": "Hamburg",
-        "Hessen": "Hessen",
-        "Mecklenburg-Vorpommern": "Meckl.-Vorp.",
-        "Niedersachsen": "Niedersachsen",
-        "Nordrhein-Westfalen": "NRW",
-        "Rheinland-Pfalz": "Rheinland-Pfalz",
-        "Saarland": "Saarland",
-        "Sachsen": "Sachsen",
-        "Sachsen-Anhalt": "Sachsen-Anhalt",
-        "Schleswig-Holstein": "Schleswig-Holstein",
-        "Thüringen": "Thüringen"
-      };
-      
-      for (const stateName of stateNames) {
-        try {
-          // Add small delay to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 100));
+    // Load all Bundesländer boundaries from pre-made GeoJSON (high quality, fast)
+    const loadAllStatesFromGeoJSON = async () => {
+      try {
+        // Use high quality pre-made GeoJSON from GitHub
+        const response = await fetch(
+          "https://raw.githubusercontent.com/isellsoap/deutschlandGeoJSON/main/2_bundeslaender/1_sehr_hoch.geo.json"
+        );
+        
+        if (!response.ok) throw new Error("Failed to fetch states GeoJSON");
+        
+        const statesData = await response.json();
+        
+        for (const feature of statesData.features) {
+          const stateName = feature.properties.name;
+          const isBavaria = stateName === "Bayern";
           
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(stateName)},Deutschland&format=geojson&polygon_geojson=1&limit=1&accept-language=de`,
-            { headers: { "User-Agent": "MapEditor/1.0", "Accept-Language": "de" } }
-          );
-          
-          if (!response.ok) continue;
-          
-          const data = await response.json();
-          
-          if (data.features && data.features.length > 0) {
-            const state = data.features[0];
-            const isBavaria = stateName === "Bayern";
+          if (isBavaria) {
+            // Store Bavaria for click detection
+            bavariaGeoJsonRef.current = feature;
             
-            // Calculate centroid for label
-            const bounds = L.geoJSON(state).getBounds();
-            const center = bounds.getCenter();
+            // Bavaria with gray fill
+            L.geoJSON(feature, {
+              style: {
+                fillColor: "#e7e5e4",
+                fillOpacity: 0.85,
+                color: "#78716c",
+                weight: 1.5,
+              },
+              pane: "bavariaPane",
+              interactive: false,
+            }).addTo(map);
             
-            if (isBavaria) {
-              // Store Bavaria for click detection
-              bavariaGeoJsonRef.current = state;
-              
-              // Bavaria with hatching pattern - base layer
-              L.geoJSON(state, {
-                style: {
-                  fillColor: "#e7e5e4",
-                  fillOpacity: 0.85,
-                  color: "#78716c",
-                  weight: 2,
-                },
-                pane: "bavariaPane",
-                interactive: false,
-              }).addTo(map);
-              
-              // Add dashed overlay for hatching effect
-              L.geoJSON(state, {
-                style: {
-                  fillColor: "transparent",
-                  fillOpacity: 0,
-                  color: "#57534e",
-                  weight: 2,
-                  dashArray: "6, 4",
-                },
-                pane: "bavariaPane",
-                interactive: false,
-              }).addTo(map);
-              
-              // Add label for Bavaria (grayed out style)
-              const labelIcon = L.divIcon({
-                className: "state-label state-label-disabled",
-                html: `<span style="
-                  font-size: 11px;
-                  font-weight: 500;
-                  color: #78716c;
-                  text-shadow: 0 0 3px #fafaf9, 0 0 3px #fafaf9, 0 0 3px #fafaf9;
-                  white-space: nowrap;
-                  pointer-events: none;
-                ">${stateLabels[stateName]}</span>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0],
-              });
-              L.marker(center, { icon: labelIcon, pane: "labelsPane", interactive: false }).addTo(map);
-              
-            } else {
-              // Other states: same border weight as Bavaria
-              L.geoJSON(state, {
-                style: {
-                  fillColor: "transparent",
-                  fillOpacity: 0,
-                  color: "#78716c",
-                  weight: 2,
-                },
-                pane: "statesPane",
-                interactive: false,
-              }).addTo(map);
-              
-              // Add label
-              const labelIcon = L.divIcon({
-                className: "state-label",
-                html: `<span style="
-                  font-size: 11px;
-                  font-weight: 500;
-                  color: #44403c;
-                  text-shadow: 0 0 3px #fafaf9, 0 0 3px #fafaf9, 0 0 3px #fafaf9;
-                  white-space: nowrap;
-                  pointer-events: none;
-                ">${stateLabels[stateName]}</span>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0],
-              });
-              L.marker(center, { icon: labelIcon, pane: "labelsPane", interactive: false }).addTo(map);
-            }
+            // Add dashed overlay for hatching effect
+            L.geoJSON(feature, {
+              style: {
+                fillColor: "transparent",
+                fillOpacity: 0,
+                color: "#57534e",
+                weight: 1.5,
+                dashArray: "6, 4",
+              },
+              pane: "bavariaPane",
+              interactive: false,
+            }).addTo(map);
+          } else {
+            // Other states: border only (no custom labels - OSM tiles have them)
+            L.geoJSON(feature, {
+              style: {
+                fillColor: "transparent",
+                fillOpacity: 0,
+                color: "#78716c",
+                weight: 1.5,
+              },
+              pane: "statesPane",
+              interactive: false,
+            }).addTo(map);
           }
-        } catch (error) {
-          console.error(`Failed to load ${stateName}:`, error);
         }
+        
+        console.log("All German states loaded from GeoJSON");
+      } catch (error) {
+        console.error("Failed to load states GeoJSON:", error);
       }
-      
-      console.log("All German states loaded from OSM");
     };
 
     // Load boundaries
     loadGermanyFromOSM();
-    loadAllStatesFromOSM();
+    loadAllStatesFromGeoJSON();
 
     // Add zoom control to bottom left
     L.control.zoom({ position: "bottomleft" }).addTo(map);
