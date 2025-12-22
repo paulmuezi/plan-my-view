@@ -24,6 +24,10 @@ const AGB = () => {
 
         <h1 className="text-3xl font-bold text-foreground mb-8">Allgemeine Geschäftsbedingungen</h1>
         
+        <p className="text-sm text-muted-foreground mb-6">
+          Gültig ab: Dezember 2025
+        </p>
+
         <div className="prose prose-sm max-w-none text-muted-foreground space-y-6">
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">§ 1 Geltungsbereich</h2>
@@ -48,7 +52,7 @@ const AGB = () => {
               (4) Der Anbieter behält sich vor, diese Allgemeinen Geschäftsbedingungen mit Wirkung für die Zukunft 
               zu ändern. Eine rückwirkende Änderung erfolgt nur zur Erfüllung einer gesetzlich oder behördlich 
               angeordneten Verpflichtung oder wenn dies für den Kunden vorteilhaft ist. Bei wesentlichen Änderungen 
-              wird der Kunde per E-Mail informiert.
+              wird der Kunde per E-Mail mindestens 2 Wochen vor Gültigkeit informiert.
             </p>
           </section>
 
@@ -56,7 +60,8 @@ const AGB = () => {
             <h2 className="text-xl font-semibold text-foreground mb-3">§ 2 Vertragsgegenstand</h2>
             <p>
               (1) Der Anbieter bietet die Erstellung von digitalen Lageplänen auf Basis frei verfügbarer 
-              Geodaten (OpenStreetMap) an. Die erstellten Pläne werden digital als PDF- und/oder DXF-Datei 
+              Geodaten der Bundesländer, insbesondere ALKIS-Daten (Amtliches Liegenschaftskatasterinformationssystem) 
+              gemäß Datenlizenz Deutschland 2.0, an. Die erstellten Pläne werden digital als PDF- und/oder DXF-Datei 
               zum Download bereitgestellt.
             </p>
             <p>
@@ -98,9 +103,8 @@ const AGB = () => {
               Umsatzsteuer. Es fallen keine zusätzlichen Versandkosten an, da es sich um digitale Produkte handelt.
             </p>
             <p>
-              (2) Die Zahlung erfolgt über die angebotenen Zahlungsmethoden (z.B. Kreditkarte) vor 
-              Bereitstellung des Lageplans. Der Lageplan wird unmittelbar nach Zahlungseingang zum Download 
-              bereitgestellt.
+              (2) Die Zahlung erfolgt über Stripe vor Bereitstellung des Lageplans. Der Lageplan wird 
+              unmittelbar nach Zahlungseingang zum Download bereitgestellt.
             </p>
             <p>
               (3) Die vom Anbieter gestellten Rechnungen sind, sofern keine Zahlungsfrist vermerkt ist und 
@@ -110,16 +114,20 @@ const AGB = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">§ 5 Lieferung</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">§ 5 Lieferung und Download-Link-Verwaltung</h2>
             <p>
               (1) Die Lieferung erfolgt durch Bereitstellung der digitalen Dateien (PDF/DXF) zum Download.
             </p>
             <p>
               (2) Nach erfolgter Zahlung erhält der Kunde einen Download-Link per E-Mail. Der Download-Link 
-              ist für einen Zeitraum von 30 Tagen gültig.
+              ist für einen Zeitraum von 30 Tagen gültig. Nach Ablauf dieser Frist wird die Datei automatisch 
+              aus dem System gelöscht. Der Kunde kann die Datei innerhalb dieser 30-Tage-Frist unbegrenzt oft herunterladen.
             </p>
             <p>
-              (3) Der Anbieter behält sich das Recht vor, die Dienste aus technischen Gründen vorübergehend 
+              (3) Der Kunde ist verpflichtet, sich die Datei vor Ablauf der 30-Tage-Frist selbst zu speichern.
+            </p>
+            <p>
+              (4) Der Anbieter behält sich das Recht vor, die Dienste aus technischen Gründen vorübergehend 
               auszusetzen. Die Dienste unterliegen laufenden Änderungen und Anpassungen.
             </p>
           </section>
@@ -139,7 +147,8 @@ const AGB = () => {
             </p>
             <p>
               (3) Der Kunde wird vor Abschluss der Bestellung auf den Verlust des Widerrufsrechts hingewiesen 
-              und muss diesem ausdrücklich zustimmen.
+              und muss diesem ausdrücklich zustimmen. Mit dem Klick auf den Download-Link akzeptiert der Kunde, 
+              dass der Download sofort beginnt und sein Widerrufsrecht damit entfällt.
             </p>
           </section>
 
@@ -164,6 +173,10 @@ const AGB = () => {
               ausdrücklicher schriftlicher Zustimmung des Anbieters gestattet. Der Kunde ist ohne vorherige 
               schriftliche Genehmigung durch den Anbieter nicht berechtigt, die erbrachten Dienstleistungen 
               an Dritte weiterzuverkaufen.
+            </p>
+            <p>
+              (5) Die zugrundeliegenden ALKIS-Daten unterliegen der Datenlizenz Deutschland 2.0 der Bundesländer. 
+              Der Kunde respektiert diese Lizenzbedingungen.
             </p>
           </section>
 
@@ -212,9 +225,10 @@ const AGB = () => {
               soweit gesetzlich zulässig.
             </p>
             <p>
-              (4) Die Lagepläne basieren auf frei verfügbaren Geodaten (OpenStreetMap). Der Anbieter übernimmt 
-              keine Gewähr für die Vollständigkeit, Richtigkeit und Aktualität dieser Daten. Die Pläne ersetzen 
-              keine amtlichen Vermessungsunterlagen.
+              (4) Die Lagepläne basieren auf frei verfügbaren Geodaten (ALKIS) der Bundesländer gemäß 
+              Datenlizenz Deutschland 2.0. Der Anbieter übernimmt keine Gewähr für die Vollständigkeit, 
+              Richtigkeit und Aktualität dieser Daten, da diese von den Bundesländern/Katasterämtern 
+              bereitgestellt werden. Die Pläne ersetzen keine amtlichen Vermessungsunterlagen.
             </p>
             <p>
               (5) Soweit gesetzlich zulässig, ist die Haftung des Anbieters in jedem Fall auf denjenigen Betrag 
@@ -257,7 +271,9 @@ const AGB = () => {
             </p>
             <p>
               (2) Sofern der Kunde Kaufmann, juristische Person des öffentlichen Rechts oder öffentlich-rechtliches 
-              Sondervermögen ist, ist Gerichtsstand für alle Streitigkeiten aus diesem Vertrag Hannover.
+              Sondervermögen ist, ist Gerichtsstand für alle Streitigkeiten aus diesem Vertrag Hannover. 
+              Für Verbraucher gilt ergänzend: Der Verbraucher kann vor den Gerichten verklagt werden, an deren 
+              Ort er seinen Wohnsitz hat.
             </p>
             <p>
               (3) Änderungen oder Ergänzungen des Vertrags einschließlich dieser Klausel bedürfen zu ihrer 
@@ -272,7 +288,7 @@ const AGB = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">Anbieter</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">Kontakt</h2>
             <p>
               Daniel Müller-Zitzke und Paul Müller-Zitzke GbR<br />
               Lehmbuschfeld 14<br />
