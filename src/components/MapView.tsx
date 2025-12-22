@@ -25,6 +25,10 @@ const defaultIcon = L.icon({
 const GERMANY_CENTER: L.LatLngExpression = [51.1657, 10.4515];
 const DEFAULT_ZOOM = 6;
 
+// GeoJSON URLs
+const GERMANY_GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
+const BAVARIA_GEOJSON_URL = "https://raw.githubusercontent.com/openpolitics/geojson-germany/refs/heads/main/states/bavaria.geojson";
+
 interface SearchSuggestion {
   display_name: string;
   lat: string;
@@ -63,6 +67,41 @@ const formatGermanAddress = (address: SearchSuggestion["address"]): string => {
   return [streetLine, cityLine, state].filter(Boolean).join(", ");
 };
 
+// Helper function to check if point is inside polygon using ray casting
+const isPointInPolygon = (point: [number, number], polygon: number[][]): boolean => {
+  const [x, y] = point;
+  let inside = false;
+  
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  
+  return inside;
+};
+
+// Check if point is in GeoJSON geometry
+const isPointInGeoJSON = (lat: number, lng: number, geoJson: any): boolean => {
+  if (!geoJson || !geoJson.geometry) return false;
+  
+  const point: [number, number] = [lng, lat]; // GeoJSON uses [lng, lat]
+  const geometry = geoJson.geometry;
+  
+  if (geometry.type === "Polygon") {
+    return isPointInPolygon(point, geometry.coordinates[0]);
+  } else if (geometry.type === "MultiPolygon") {
+    return geometry.coordinates.some((polygon: number[][][]) => 
+      isPointInPolygon(point, polygon[0])
+    );
+  }
+  
+  return false;
+};
+
 const MapView = () => {
   const { pinPosition, setPinPosition, setAddress, paperFormat, orientation, scale } = useMapSettings();
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,6 +113,8 @@ const MapView = () => {
   const markerRef = useRef<L.Marker | null>(null);
   const rectangleRef = useRef<L.Rectangle | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const germanyGeoJsonRef = useRef<any>(null);
+  const bavariaGeoJsonRef = useRef<any>(null);
 
   // Calculate bbox bounds
   const calculateBboxBounds = useCallback((lat: number, lng: number): L.LatLngBoundsExpression => {
@@ -95,6 +136,14 @@ const MapView = () => {
     ];
   }, [paperFormat, orientation, scale]);
 
+  // Check if click is in allowed area (Germany but not Bavaria)
+  const isClickAllowed = useCallback((lat: number, lng: number): boolean => {
+    const inGermany = germanyGeoJsonRef.current && isPointInGeoJSON(lat, lng, germanyGeoJsonRef.current);
+    const inBavaria = bavariaGeoJsonRef.current && isPointInGeoJSON(lat, lng, bavariaGeoJsonRef.current);
+    
+    return inGermany && !inBavaria;
+  }, []);
+
   // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -114,21 +163,102 @@ const MapView = () => {
       minZoom: 6,
     });
 
+    // Create panes for layering
+    map.createPane("backgroundPane");
+    map.getPane("backgroundPane")!.style.zIndex = "200";
+    
+    map.createPane("tilesPane");
+    map.getPane("tilesPane")!.style.zIndex = "300";
+    
+    map.createPane("maskPane");
+    map.getPane("maskPane")!.style.zIndex = "400";
+    
+    map.createPane("bavariaPane");
+    map.getPane("bavariaPane")!.style.zIndex = "450";
+    
+    map.createPane("borderPane");
+    map.getPane("borderPane")!.style.zIndex = "500";
+
+    // Add OSM tile layer
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      pane: "tilesPane",
     }).addTo(map);
 
-    // Load and add Bavaria overlay (grayed out)
-    fetch("https://raw.githubusercontent.com/isellsoap/deutschern-and-maps/main/data/1_deutschland/4_laender/bayern.geo.json")
+    // Load Germany GeoJSON and create mask
+    fetch(GERMANY_GEOJSON_URL)
+      .then(res => res.json())
+      .then(data => {
+        const germany = data.features.find(
+          (f: any) => f.properties.ADMIN === "Germany" || f.properties.name === "Germany"
+        );
+        
+        if (germany) {
+          germanyGeoJsonRef.current = germany;
+          
+          // Create a world polygon with a hole for Germany (mask effect)
+          const worldCoords: L.LatLngExpression[] = [
+            [-90, -180],
+            [-90, 180],
+            [90, 180],
+            [90, -180],
+            [-90, -180],
+          ];
+          
+          // Extract Germany coordinates for the hole
+          const germanyCoords: L.LatLngExpression[][] = [];
+          
+          if (germany.geometry.type === "Polygon") {
+            germanyCoords.push(
+              germany.geometry.coordinates[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
+            );
+          } else if (germany.geometry.type === "MultiPolygon") {
+            germany.geometry.coordinates.forEach((polygon: number[][][]) => {
+              germanyCoords.push(
+                polygon[0].map((coord: number[]) => [coord[1], coord[0]] as L.LatLngExpression)
+              );
+            });
+          }
+          
+          // Create mask polygon (world with Germany hole)
+          const maskPolygon = L.polygon([worldCoords, ...germanyCoords], {
+            fillColor: "#f1f5f9",
+            fillOpacity: 1,
+            color: "transparent",
+            weight: 0,
+            pane: "maskPane",
+            interactive: false,
+          }).addTo(map);
+          
+          // Add Germany border
+          L.geoJSON(germany, {
+            style: {
+              fillColor: "transparent",
+              fillOpacity: 0,
+              color: "#64748b",
+              weight: 2,
+            },
+            pane: "borderPane",
+            interactive: false,
+          }).addTo(map);
+        }
+      })
+      .catch(err => console.error("Failed to load Germany GeoJSON:", err));
+
+    // Load Bavaria overlay
+    fetch(BAVARIA_GEOJSON_URL)
       .then(res => res.json())
       .then(bavariaGeoJson => {
+        bavariaGeoJsonRef.current = bavariaGeoJson;
+        
         L.geoJSON(bavariaGeoJson, {
           style: {
-            fillColor: "#888888",
-            fillOpacity: 0.5,
-            color: "#666666",
+            fillColor: "#94a3b8",
+            fillOpacity: 0.7,
+            color: "#64748b",
             weight: 2,
           },
+          pane: "bavariaPane",
           interactive: false,
         }).addTo(map);
       })
@@ -140,6 +270,12 @@ const MapView = () => {
     // Handle map clicks
     map.on("click", async (e) => {
       const { lat, lng } = e.latlng;
+      
+      // Check if click is in allowed area
+      if (!isClickAllowed(lat, lng)) {
+        return; // Ignore clicks outside Germany or inside Bavaria
+      }
+      
       setPinPosition({ lat, lng });
       
       // Reverse geocode
@@ -163,7 +299,7 @@ const MapView = () => {
       map.remove();
       mapRef.current = null;
     };
-  }, [setPinPosition, setAddress]);
+  }, [setPinPosition, setAddress, isClickAllowed]);
 
   // Update marker and rectangle when pin position changes
   useEffect(() => {
