@@ -18,7 +18,7 @@ const Home = () => {
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">
               <CheckCircle className="w-4 h-4" />
-              Aktuelle Katasterdaten bundesweit
+              einfach, amtlich, digital.
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Lageplan erstellen
