@@ -3,11 +3,12 @@ import { Map, Search, Settings, Download, CheckCircle, ArrowRight } from "lucide
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
+
 const Home = () => {
-  const {
-    user
-  } = useAuth();
-  return <div className="min-h-screen bg-background">
+  const { user } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-background">
       <Header variant="contained" />
 
       {/* Hero Section */}
@@ -22,7 +23,10 @@ const Home = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Lageplan erstellen
             </h1>
-            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto px-0">Erstellen Sie professionelle Lagepläne – schnell, einfach und auf Basis amtlicher Geodaten.</p>
+            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+              Erstellen Sie professionelle Auszüge aus dem Liegenschaftskataster – 
+              schnell, einfach und rechtssicher.
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to={user ? "/editor" : "/login"}>
                 <Button size="lg" className="px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
@@ -164,6 +168,8 @@ const Home = () => {
           </div>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
+
 export default Home;
