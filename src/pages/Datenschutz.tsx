@@ -29,12 +29,13 @@ const Datenschutz = () => {
             </p>
             
             <h3 className="font-medium text-foreground mt-4 mb-1">Datenerfassung auf dieser Website</h3>
-            <p><strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong></p>
+            
+            <p className="text-foreground/80 mt-3 mb-1">Wer ist verantwortlich für die Datenerfassung auf dieser Website?</p>
             <p>
               Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Impressum dieser Website entnehmen.
             </p>
             
-            <p className="mt-2"><strong>Wie erfassen wir Ihre Daten?</strong></p>
+            <p className="text-foreground/80 mt-3 mb-1">Wie erfassen wir Ihre Daten?</p>
             <p>
               Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen. Hierbei kann es sich z. B. um Daten handeln, die Sie in ein Registrierungs- oder Bestellformular eingeben.
             </p>
@@ -42,12 +43,12 @@ const Datenschutz = () => {
               Andere Daten werden automatisch oder nach Ihrer Einwilligung beim Besuch der Website durch unsere IT-Systeme erfasst. Das sind vor allem technische Daten (z. B. Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs). Die Erfassung dieser Daten erfolgt automatisch, sobald Sie die Website betreten.
             </p>
             
-            <p className="mt-2"><strong>Wofür nutzen wir Ihre Daten?</strong></p>
+            <p className="text-foreground/80 mt-3 mb-1">Wofür nutzen wir Ihre Daten?</p>
             <p>
               Ein Teil der Daten wird erhoben, um eine fehlerfreie Bereitstellung der Website zu gewährleisten (z. B. Login-Bereich, Warenkorb). Andere Daten können zur Analyse Ihres Nutzerverhaltens verwendet werden.
             </p>
             
-            <p className="mt-2"><strong>Welche Rechte haben Sie bezüglich Ihrer Daten?</strong></p>
+            <p className="text-foreground/80 mt-3 mb-1">Welche Rechte haben Sie bezüglich Ihrer Daten?</p>
             <p>
               Sie haben jederzeit das Recht, unentgeltlich Auskunft über Herkunft, Empfänger und Zweck Ihrer gespeicherten personenbezogenen Daten zu erhalten. Sie haben außerdem ein Recht, die Berichtigung oder Löschung dieser Daten zu verlangen. Wenn Sie eine Einwilligung zur Datenverarbeitung erteilt haben, können Sie diese jederzeit für die Zukunft widerrufen. Außerdem haben Sie das Recht, unter bestimmten Umständen die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen. Des Weiteren steht Ihnen ein Beschwerderecht bei der zuständigen Aufsichtsbehörde zu.
             </p>
@@ -185,8 +186,9 @@ const Datenschutz = () => {
             <p className="mt-2">
               Bei der Zahlung werden Ihre Zahlungsdaten (z. B. Name, Zahlungsbetrag, Kontoverbindung, Kreditkartennummer) an Stripe weitergeleitet.
             </p>
-            <p className="mt-2">
-              <strong>Datenübermittlung in die USA:</strong> Soweit Daten an die Muttergesellschaft Stripe, Inc. in die USA übermittelt werden, erfolgt dies auf Grundlage des EU-US Data Privacy Frameworks (DPF), für das Stripe zertifiziert ist, sowie auf Grundlage von Standardvertragsklauseln der EU-Kommission. Details finden Sie in der Datenschutzerklärung von Stripe: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://stripe.com/de/privacy</a>.
+            <p className="text-foreground/80 mt-3 mb-1">Datenübermittlung in die USA</p>
+            <p>
+              Soweit Daten an die Muttergesellschaft Stripe, Inc. in die USA übermittelt werden, erfolgt dies auf Grundlage des EU-US Data Privacy Frameworks (DPF), für das Stripe zertifiziert ist, sowie auf Grundlage von Standardvertragsklauseln der EU-Kommission. Details finden Sie in der Datenschutzerklärung von Stripe: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://stripe.com/de/privacy</a>.
             </p>
             <p className="mt-2">
               Die Verarbeitung Ihrer Daten erfolgt zur Erfüllung des Vertrags (Art. 6 Abs. 1 lit. b DSGVO). Ohne die Übermittlung Ihrer Zahlungsdaten kann die Zahlung nicht durchgeführt werden.
@@ -203,8 +205,9 @@ const Datenschutz = () => {
             <p className="mt-2">
               Wenn Sie den Kartenbereich unserer Website nutzen, wird Ihre IP-Adresse und weitere technische Informationen an die OSMF weitergeleitet, um die Kartendarstellung zu ermöglichen.
             </p>
-            <p className="mt-2">
-              <strong>Rechtsgrundlage:</strong> Die Nutzung von OpenStreetMap erfolgt im Interesse einer ansprechenden Darstellung unserer Online-Angebote und einer leichten Auffindbarkeit der gewünschten Flurstücke. Dies stellt ein berechtigtes Interesse im Sinne von Art. 6 Abs. 1 lit. f DSGVO dar.
+            <p className="text-foreground/80 mt-3 mb-1">Rechtsgrundlage</p>
+            <p>
+              Die Nutzung von OpenStreetMap erfolgt im Interesse einer ansprechenden Darstellung unserer Online-Angebote und einer leichten Auffindbarkeit der gewünschten Flurstücke. Dies stellt ein berechtigtes Interesse im Sinne von Art. 6 Abs. 1 lit. f DSGVO dar.
             </p>
             <p className="mt-2">
               Soweit Daten in das Vereinigte Königreich (UK) übertragen werden, gilt: Das Vereinigte Königreich gilt datenschutzrechtlich als sicherer Drittstaat (Angemessenheitsbeschluss der EU-Kommission).
