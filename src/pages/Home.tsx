@@ -24,8 +24,7 @@ const Home = () => {
               Lageplan erstellen
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              Erstellen Sie professionelle Auszüge aus dem Liegenschaftskataster – 
-              schnell, einfach und rechtssicher.
+              Nutzen Sie aktuelle, amtliche Katasterdaten als Grundlage für Ihre Planung, Bewertung und Exposés.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to={user ? "/editor" : "/login"}>
