@@ -14,6 +14,7 @@ const Footer = () => {
             <Link to="/impressum" className="hover:text-foreground transition-colors">Impressum</Link>
             <Link to="/datenschutz" className="hover:text-foreground transition-colors">Datenschutz</Link>
             <Link to="/agb" className="hover:text-foreground transition-colors">AGB</Link>
+            <Link to="/quelldaten" className="hover:text-foreground transition-colors">Quelldaten</Link>
           </div>
           <p className="text-sm text-muted-foreground">
             © 2025 Lageplaner
