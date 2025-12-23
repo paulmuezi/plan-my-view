@@ -242,8 +242,8 @@ const Datenschutz = () => {
             </p>
           </section>
 
-          <p className="text-sm pt-6 border-t border-border">
-            Stand: Dezember 2024
+          <p className="text-sm text-muted-foreground pt-6 border-t border-border">
+            Stand: Januar 2026
           </p>
         </div>
       </main>
