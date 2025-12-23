@@ -511,7 +511,7 @@ const Checkout = () => {
               onClick={handlePayment}
               disabled={isProcessing || !isPaymentComplete()}
             >
-              {isProcessing ? "Verarbeitung..." : `Jetzt bezahlen (${totalPrice}€)`}
+              {isProcessing ? "Verarbeitung..." : `Jetzt kaufen (${totalPrice}€)`}
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-2">
               Mit dem Kauf akzeptieren Sie unsere AGB und Datenschutzrichtlinien.
