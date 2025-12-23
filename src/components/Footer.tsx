@@ -17,7 +17,7 @@ const Footer = () => {
             <Link to="/quelldaten" className="hover:text-foreground transition-colors">Quelldaten</Link>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2025 Lageplaner
+            © 2026 Lageplaner
           </p>
         </div>
       </div>

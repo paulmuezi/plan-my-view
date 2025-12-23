@@ -172,7 +172,7 @@ const Quelldaten = () => {
           </p>
         </section>
 
-        <p className="text-sm text-muted-foreground">Stand: Dezember 2025</p>
+        <p className="text-sm text-muted-foreground">Stand: Januar 2026</p>
       </main>
       <Footer />
     </div>;

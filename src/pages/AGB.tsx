@@ -208,6 +208,8 @@ const AGB = () => {
               </a>. Wir sind zur Teilnahme nicht verpflichtet.
             </p>
           </section>
+
+          <p className="text-sm text-muted-foreground mt-8">Stand: Januar 2026</p>
         </div>
       </main>
 
