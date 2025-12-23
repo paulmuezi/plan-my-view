@@ -3,11 +3,12 @@ import { Map, Search, Settings, Download, CheckCircle, ArrowRight } from "lucide
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
+
 const Home = () => {
-  const {
-    user
-  } = useAuth();
-  return <div className="min-h-screen bg-background">
+  const { user } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-background">
       <Header variant="contained" />
 
       {/* Hero Section */}
@@ -15,13 +16,16 @@ const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 pointer-events-none" />
         <div className="max-w-6xl mx-auto px-4 py-20 md:py-28">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">nAktuelle Katasterdaten bundesweitAktuelle Katasterdaten bundesweit<CheckCircle className="w-4 h-4" />
-              Aktuelle Katasterdaten bundesweit
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">
+              <CheckCircle className="w-4 h-4" />
+              schnell, amtlich und digital
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Lageplan erstellen
             </h1>
-            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto px-0">Erstellen Sie professionelle Lagepläne – schnell, einfach und auf Basis amtlicher Geodaten.</p>
+            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+              Nutzen Sie aktuelle, amtliche Katasterdaten als Grundlage für Ihre Planung, Bewertung und Exposés.
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to={user ? "/editor" : "/login"}>
                 <Button size="lg" className="px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
@@ -29,7 +33,9 @@ const Home = () => {
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <span className="text-sm text-muted-foreground">Kostenlose Vorschau</span>
+              <Link to={user ? "/editor" : "/login"} className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                Kostenlose Vorschau
+              </Link>
             </div>
           </div>
         </div>
@@ -163,6 +169,8 @@ const Home = () => {
           </div>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
+
 export default Home;
