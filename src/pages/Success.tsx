@@ -141,22 +141,16 @@ const Success = () => {
                 </Button>
               )}
               <p className="text-xs text-muted-foreground mt-2">
-                Die Download-Links wurden auch per E-Mail an Sie gesendet und sind 7 Tage gültig.
+                Die Download-Links wurden auch per E-Mail an Sie gesendet und sind 30 Tage gültig.
               </p>
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex gap-4">
-            <Button variant="outline" className="flex-1" onClick={() => navigate("/editor")}>
-              <ArrowRight className="w-4 h-4 mr-2" />
-              Neue Karte erstellen
-            </Button>
-            <Button className="flex-1" onClick={() => navigate("/")}>
-              <Home className="w-4 h-4 mr-2" />
-              Zur Startseite
-            </Button>
-          </div>
+          {/* Action Button */}
+          <Button className="w-full" onClick={() => navigate("/editor")}>
+            <ArrowRight className="w-4 h-4 mr-2" />
+            Zurück zur Kartenansicht
+          </Button>
         </div>
       </main>
     </div>
