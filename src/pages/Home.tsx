@@ -33,7 +33,9 @@ const Home = () => {
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <span className="text-sm text-muted-foreground">Kostenlose Vorschau</span>
+              <Link to={user ? "/editor" : "/login"} className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                Kostenlose Vorschau
+              </Link>
             </div>
           </div>
         </div>
