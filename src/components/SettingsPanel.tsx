@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMapSettings } from "@/contexts/MapContext";
-import { X } from "lucide-react";
 
 const getBasePrice = (format: "A4" | "A3" | "A2") => {
   switch (format) {
@@ -22,11 +21,7 @@ const getBasePrice = (format: "A4" | "A3" | "A2") => {
   }
 };
 
-interface SettingsPanelProps {
-  onClose?: () => void;
-}
-
-const SettingsPanel = ({ onClose }: SettingsPanelProps) => {
+const SettingsPanel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { paperFormat, setPaperFormat, orientation, setOrientation, scale, setScale, pinPosition, address } = useMapSettings();
@@ -44,7 +39,6 @@ const SettingsPanel = ({ onClose }: SettingsPanelProps) => {
     if (!pinPosition) {
       return;
     }
-    onClose?.();
     navigate("/checkout", {
       state: {
         paperFormat,
@@ -62,17 +56,12 @@ const SettingsPanel = ({ onClose }: SettingsPanelProps) => {
   const canGenerate = (pdfSelected || dxfSelected) && pinPosition;
 
   return (
-    <div className="w-full md:w-64 bg-card md:border-l border-border flex flex-col h-full">
-      <div className="p-3 border-b border-border flex items-center justify-between">
+    <div className="w-64 bg-card border-l border-border flex flex-col">
+      <div className="p-3 border-b border-border">
         <h2 className="text-sm font-semibold">Einstellungen</h2>
-        {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-            <X className="h-4 w-4" />
-          </Button>
-        )}
       </div>
       
-      <div className="p-4 md:p-3 space-y-4 flex-1 overflow-y-auto">
+      <div className="p-3 space-y-4 flex-1">
         {/* Selected Address */}
         {address && (
           <div>
@@ -165,7 +154,7 @@ const SettingsPanel = ({ onClose }: SettingsPanelProps) => {
         </div>
       </div>
 
-      <div className="p-4 md:p-3 border-t border-border">
+      <div className="p-3 border-t border-border">
         <Button 
           onClick={handleGeneratePreview} 
           className="w-full py-6 text-base font-semibold" 
