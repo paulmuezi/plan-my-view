@@ -3,52 +3,101 @@ import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-const dataSources = [
-  { bundesland: "Baden-Württemberg", text: "© LGL, www.lgl-bw.de", year: 2025, license: "dl-de/by-2.0" },
-  { bundesland: "Bayern", text: "© Bayerische Vermessungsverwaltung – www.geodaten.bayern.de", year: 2025, license: "CC BY-ND 4.0" },
-  { bundesland: "Berlin", text: "© SenStadt Berlin", year: 2025, license: "dl-de/zero-2.0" },
-  { bundesland: "Brandenburg", text: "© GeoBasis-DE/LGB, dl-de/by-2.0", year: 2024, license: "dl-de/by-2.0" },
-  { bundesland: "Bremen", text: "© Landesamt GeoInformation Bremen", year: 2025, license: "CC BY 4.0" },
-  { bundesland: "Hamburg", text: "© Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und Vermessung (LGV)", year: 2025, license: "dl-de/by-2.0" },
-  { bundesland: "Hessen", text: "© HVBG", year: 2025, license: "dl-de/zero-2.0" },
-  { bundesland: "Mecklenburg-Vorpommern", text: "© GeoBasis-DE/M-V 2025", year: 2025, license: "CC BY 4.0" },
-  { bundesland: "Niedersachsen", text: "© LGLN (2025)", year: 2025, license: "CC BY 4.0" },
-  { bundesland: "Nordrhein-Westfalen", text: "© Geobasis NRW", year: 2025, license: "dl-de/zero-2.0" },
-  { bundesland: "Rheinland-Pfalz", text: "© GeoBasis-DE / LVermGeoRP 2025, dl-de/by-2.0, www.lvermgeo.rlp.de", year: 2025, license: "dl-de/by-2.0" },
-  { bundesland: "Saarland", text: "© GeoBasis DE/LVGL-SL (2025)", year: 2025, license: "dl-de/by-2.0" },
-  { bundesland: "Sachsen", text: "© Geodaten Sachsen", year: 2025, license: "dl-de/by-2.0" },
-  { bundesland: "Sachsen-Anhalt", text: "© GeoBasis-DE / LVermGeo LSA", year: 2025, license: "dl-de/by-2.0" },
-  { bundesland: "Schleswig-Holstein", text: "© GeoBasis-DE/LVermGeo SH/CC BY 4.0", year: 2025, license: "CC BY 4.0" },
-  { bundesland: "Thüringen", text: "© GDI-Th (2024)", year: 2024, license: "dl-de/by-2.0" },
-];
-
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+const dataSources = [{
+  bundesland: "Baden-Württemberg",
+  text: "© LGL, www.lgl-bw.de",
+  year: 2025,
+  license: "dl-de/by-2.0"
+}, {
+  bundesland: "Bayern",
+  text: "© Bayerische Vermessungsverwaltung – www.geodaten.bayern.de",
+  year: 2025,
+  license: "CC BY-ND 4.0"
+}, {
+  bundesland: "Berlin",
+  text: "© SenStadt Berlin",
+  year: 2025,
+  license: "dl-de/zero-2.0"
+}, {
+  bundesland: "Brandenburg",
+  text: "© GeoBasis-DE/LGB, dl-de/by-2.0",
+  year: 2024,
+  license: "dl-de/by-2.0"
+}, {
+  bundesland: "Bremen",
+  text: "© Landesamt GeoInformation Bremen",
+  year: 2025,
+  license: "CC BY 4.0"
+}, {
+  bundesland: "Hamburg",
+  text: "© Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und Vermessung (LGV)",
+  year: 2025,
+  license: "dl-de/by-2.0"
+}, {
+  bundesland: "Hessen",
+  text: "© HVBG",
+  year: 2025,
+  license: "dl-de/zero-2.0"
+}, {
+  bundesland: "Mecklenburg-Vorpommern",
+  text: "© GeoBasis-DE/M-V 2025",
+  year: 2025,
+  license: "CC BY 4.0"
+}, {
+  bundesland: "Niedersachsen",
+  text: "© LGLN (2025)",
+  year: 2025,
+  license: "CC BY 4.0"
+}, {
+  bundesland: "Nordrhein-Westfalen",
+  text: "© Geobasis NRW",
+  year: 2025,
+  license: "dl-de/zero-2.0"
+}, {
+  bundesland: "Rheinland-Pfalz",
+  text: "© GeoBasis-DE / LVermGeoRP 2025, dl-de/by-2.0, www.lvermgeo.rlp.de",
+  year: 2025,
+  license: "dl-de/by-2.0"
+}, {
+  bundesland: "Saarland",
+  text: "© GeoBasis DE/LVGL-SL (2025)",
+  year: 2025,
+  license: "dl-de/by-2.0"
+}, {
+  bundesland: "Sachsen",
+  text: "© Geodaten Sachsen",
+  year: 2025,
+  license: "dl-de/by-2.0"
+}, {
+  bundesland: "Sachsen-Anhalt",
+  text: "© GeoBasis-DE / LVermGeo LSA",
+  year: 2025,
+  license: "dl-de/by-2.0"
+}, {
+  bundesland: "Schleswig-Holstein",
+  text: "© GeoBasis-DE/LVermGeo SH/CC BY 4.0",
+  year: 2025,
+  license: "CC BY 4.0"
+}, {
+  bundesland: "Thüringen",
+  text: "© GDI-Th (2024)",
+  year: 2024,
+  license: "dl-de/by-2.0"
+}];
 const Quelldaten = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
+  return <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 max-w-5xl">
-        <Link
-          to="/"
-          className="inline-flex items-center text-primary hover:underline mb-6"
-        >
+        <Link to="/" className="inline-flex items-center text-primary hover:underline mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Zurück zur Startseite
         </Link>
 
-        <h1 className="text-3xl font-bold mb-6">Quelldaten & Datenquellen</h1>
+        <h1 className="text-3xl font-bold mb-6">Quelldaten </h1>
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Datengrundlage</h2>
@@ -76,14 +125,12 @@ const Quelldaten = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {dataSources.map((source) => (
-                  <TableRow key={source.bundesland}>
+                {dataSources.map(source => <TableRow key={source.bundesland}>
                     <TableCell className="font-medium">{source.bundesland}</TableCell>
                     <TableCell className="text-sm">{source.text}</TableCell>
                     <TableCell className="text-center">{source.year}</TableCell>
                     <TableCell className="text-sm">{source.license}</TableCell>
-                  </TableRow>
-                ))}
+                  </TableRow>)}
               </TableBody>
             </Table>
           </div>
@@ -128,8 +175,6 @@ const Quelldaten = () => {
         <p className="text-sm text-muted-foreground">Stand: Dezember 2025</p>
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Quelldaten;
