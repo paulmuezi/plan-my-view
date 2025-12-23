@@ -3,21 +3,15 @@ import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
 const Datenschutz = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       <Header variant="contained" />
 
       <main className="flex-1 max-w-3xl mx-auto px-4 py-12 w-full">
-        <Link 
-          to="/" 
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
+        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
           <ArrowLeft className="w-4 h-4" />
           Zurück zur Startseite
         </Link>
@@ -212,9 +206,7 @@ const Datenschutz = () => {
               den Lizenzbedingungen der Datenlizenz Deutschland 2.0. Diese Daten werden von den Bundesländern und 
               Katasterämtern bereitgestellt.
             </p>
-            <p className="mt-2">
-              Weitere Informationen: <a href="https://www.geokommunikation.de" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://www.geokommunikation.de</a>
-            </p>
+            
           </section>
 
           <section>
@@ -245,8 +237,6 @@ const Datenschutz = () => {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Datenschutz;
