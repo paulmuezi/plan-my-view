@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMapSettings } from "@/contexts/MapContext";
+import { X } from "lucide-react";
 
 const getBasePrice = (format: "A4" | "A3" | "A2") => {
   switch (format) {
@@ -21,7 +22,11 @@ const getBasePrice = (format: "A4" | "A3" | "A2") => {
   }
 };
 
-const SettingsPanel = () => {
+interface SettingsPanelProps {
+  onClose?: () => void;
+}
+
+const SettingsPanel = ({ onClose }: SettingsPanelProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { paperFormat, setPaperFormat, orientation, setOrientation, scale, setScale, pinPosition, address } = useMapSettings();
@@ -39,6 +44,7 @@ const SettingsPanel = () => {
     if (!pinPosition) {
       return;
     }
+    onClose?.();
     navigate("/checkout", {
       state: {
         paperFormat,
@@ -56,12 +62,17 @@ const SettingsPanel = () => {
   const canGenerate = (pdfSelected || dxfSelected) && pinPosition;
 
   return (
-    <div className="w-64 bg-card border-l border-border flex flex-col">
-      <div className="p-3 border-b border-border">
+    <div className="w-full md:w-64 bg-card md:border-l border-border flex flex-col h-full">
+      <div className="p-3 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold">Einstellungen</h2>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
       
-      <div className="p-3 space-y-4 flex-1">
+      <div className="p-4 md:p-3 space-y-4 flex-1 overflow-y-auto">
         {/* Selected Address */}
         {address && (
           <div>
@@ -154,7 +165,7 @@ const SettingsPanel = () => {
         </div>
       </div>
 
-      <div className="p-3 border-t border-border">
+      <div className="p-4 md:p-3 border-t border-border">
         <Button 
           onClick={handleGeneratePreview} 
           className="w-full py-6 text-base font-semibold" 
