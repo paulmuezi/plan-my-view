@@ -15,7 +15,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 pointer-events-none" />
         <div className="max-w-6xl mx-auto px-4 py-20 md:py-28">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">nAktuelle Katasterdaten bundesweit<CheckCircle className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">eitAktuelle Katasterdaten bundesweit<CheckCircle className="w-4 h-4" />
               Aktuelle Katasterdaten bundesweit
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
