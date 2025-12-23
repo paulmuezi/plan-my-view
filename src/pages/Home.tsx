@@ -14,27 +14,7 @@ const Home = () => {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 pointer-events-none" />
         <div className="max-w-6xl mx-auto px-4 py-20 md:py-28">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">Basierend auf amtlichen Daten<CheckCircle className="w-4 h-4" />
-              Aktuelle Katasterdaten bundesweit
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              Lageplan erstellen
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              Erstellen Sie professionelle Auszüge aus dem Liegenschaftskataster – 
-              schnell, einfach und rechtssicher.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to={user ? "/editor" : "/login"}>
-                <Button size="lg" className="px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                  Jetzt Lageplan erstellen
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <span className="text-sm text-muted-foreground">Kostenlose Vorschau</span>
-            </div>
-          </div>
+          
         </div>
       </section>
 
