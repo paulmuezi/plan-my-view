@@ -15,13 +15,13 @@ const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 pointer-events-none" />
         <div className="max-w-6xl mx-auto px-4 py-20 md:py-28">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">Basierend auf Amtlichen Daten<CheckCircle className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">nAktuelle Katasterdaten bundesweit<CheckCircle className="w-4 h-4" />
               Aktuelle Katasterdaten bundesweit
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Lageplan erstellen
             </h1>
-            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto px-0">Nutzen Sie aktuelle, amtliche Katasterdaten als Grundlage für Ihre Planung, Bewertung oder Exposés. Schnell, einfach, digital.</p>
+            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto px-0">Erstellen Sie professionelle Lagepläne – schnell, einfach und auf Basis amtlicher Geodaten.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to={user ? "/editor" : "/login"}>
                 <Button size="lg" className="px-10 py-7 text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
@@ -118,7 +118,7 @@ const Home = () => {
                 <ul className="text-left space-y-3 mb-6">
                   <li className="flex items-center gap-3 text-sm">
                     <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-muted-foreground">Basieren auf Amtlichen Katasterdaten</span>
+                    <span className="text-muted-foreground">Amtliche Katasterdaten</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm">
                     <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
