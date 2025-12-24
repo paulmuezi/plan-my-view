@@ -380,10 +380,29 @@ const Checkout = () => {
 
       <main className="flex-1 flex overflow-hidden pt-14">
         {/* Preview Section - Left */}
-        <div className="flex-1 flex flex-col items-center justify-center overflow-auto p-6 gap-4">
-          {/* Elegant Toggle - only show when both formats selected */}
+        <div className="flex-1 flex flex-col items-center justify-center overflow-auto p-6 relative">
+          {/* Preview Card */}
+          <div className="max-w-lg w-full shadow-lg rounded-lg overflow-hidden border border-border bg-card">
+            {!pdfSelected && !dxfSelected ? (
+              <div className="p-8 text-center text-muted-foreground">
+                Keine Vorschau verfügbar
+              </div>
+            ) : (
+              <img 
+                src={
+                  pdfSelected && dxfSelected 
+                    ? (activePreview === 'pdf' ? previewPdf : previewDxf)
+                    : (pdfSelected ? previewPdf : previewDxf)
+                } 
+                alt={`${pdfSelected && dxfSelected ? activePreview.toUpperCase() : (pdfSelected ? 'PDF' : 'DXF')} Vorschau`}
+                className="w-full h-auto object-contain"
+              />
+            )}
+          </div>
+
+          {/* Elegant Toggle - fixed at bottom, only show when both formats selected */}
           {pdfSelected && dxfSelected && (
-            <div className="inline-flex items-center gap-1 p-1 bg-muted rounded-full">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 p-1 bg-muted/95 backdrop-blur-sm rounded-full shadow-lg border border-border">
               <button
                 onClick={() => setActivePreview('pdf')}
                 className={cn(
@@ -410,25 +429,6 @@ const Checkout = () => {
               </button>
             </div>
           )}
-
-          {/* Preview Card */}
-          <div className="max-w-lg w-full shadow-lg rounded-lg overflow-hidden border border-border bg-card">
-            {!pdfSelected && !dxfSelected ? (
-              <div className="p-8 text-center text-muted-foreground">
-                Keine Vorschau verfügbar
-              </div>
-            ) : (
-              <img 
-                src={
-                  pdfSelected && dxfSelected 
-                    ? (activePreview === 'pdf' ? previewPdf : previewDxf)
-                    : (pdfSelected ? previewPdf : previewDxf)
-                } 
-                alt={`${pdfSelected && dxfSelected ? activePreview.toUpperCase() : (pdfSelected ? 'PDF' : 'DXF')} Vorschau`}
-                className="w-full h-auto object-contain"
-              />
-            )}
-          </div>
         </div>
 
         {/* Payment Section - Right */}
