@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, FileText, FileCode, Check, Lock } from "lucide-react";
+import { ArrowLeft, CreditCard, FileText, FileCode, Check, Lock, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -64,6 +64,38 @@ const Checkout = () => {
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activePreview, setActivePreview] = useState<'pdf' | 'dxf'>('pdf');
+  
+  // Pan & Zoom state
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
+  const handleReset = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    }
+  }, [zoom, pan]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isPanning) {
+      setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
+    }
+  }, [isPanning, panStart]);
+
+  const handleMouseUp = useCallback(() => setIsPanning(false), []);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom(prev => Math.min(Math.max(prev + delta, 0.5), 3));
+  }, []);
   
   // Card details state
   const [cardDetails, setCardDetails] = useState<CardDetails>({
@@ -380,53 +412,110 @@ const Checkout = () => {
 
       <main className="flex-1 flex overflow-hidden pt-14">
         {/* Preview Section - Left */}
-        <div className="flex-1 flex flex-col items-center justify-center overflow-auto p-6 gap-4">
-          {/* Elegant Toggle - only show when both formats selected */}
-          {pdfSelected && dxfSelected && (
-            <div className="inline-flex items-center gap-1 p-1 bg-muted rounded-full">
-              <button
-                onClick={() => setActivePreview('pdf')}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
-                  activePreview === 'pdf' 
-                    ? "bg-background text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <FileText className="w-3.5 h-3.5" />
-                PDF
-              </button>
-              <button
-                onClick={() => setActivePreview('dxf')}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
-                  activePreview === 'dxf' 
-                    ? "bg-background text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <FileCode className="w-3.5 h-3.5" />
-                DXF
-              </button>
-            </div>
-          )}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Fixed Header Bar with Toggle */}
+          <div className="h-12 border-b border-border bg-card flex items-center justify-between px-4 shrink-0">
+            <span className="text-sm text-muted-foreground">Vorschau</span>
+            
+            <div className="flex items-center gap-3">
+              {/* Format Toggle - only show when both selected */}
+              {pdfSelected && dxfSelected && (
+                <div className="inline-flex items-center gap-0.5 p-0.5 bg-muted rounded-full">
+                  <button
+                    onClick={() => setActivePreview('pdf')}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200",
+                      activePreview === 'pdf' 
+                        ? "bg-background text-foreground shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <FileText className="w-3 h-3" />
+                    PDF
+                  </button>
+                  <button
+                    onClick={() => setActivePreview('dxf')}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200",
+                      activePreview === 'dxf' 
+                        ? "bg-background text-foreground shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <FileCode className="w-3 h-3" />
+                    DXF
+                  </button>
+                </div>
+              )}
 
-          {/* Preview Card */}
-          <div className="max-w-lg w-full shadow-lg rounded-lg overflow-hidden border border-border bg-card">
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-1 border-l border-border pl-3">
+                <button
+                  onClick={handleZoomOut}
+                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  title="Verkleinern"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <span className="text-xs text-muted-foreground w-12 text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  onClick={handleZoomIn}
+                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  title="Vergrößern"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors ml-1"
+                  title="Zurücksetzen"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Preview Area with Pan & Zoom */}
+          <div 
+            ref={containerRef}
+            className={cn(
+              "flex-1 overflow-hidden flex items-center justify-center bg-muted/30",
+              zoom > 1 ? "cursor-grab" : "cursor-default",
+              isPanning && "cursor-grabbing"
+            )}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
+          >
             {!pdfSelected && !dxfSelected ? (
               <div className="p-8 text-center text-muted-foreground">
                 Keine Vorschau verfügbar
               </div>
             ) : (
-              <img 
-                src={
-                  pdfSelected && dxfSelected 
-                    ? (activePreview === 'pdf' ? previewPdf : previewDxf)
-                    : (pdfSelected ? previewPdf : previewDxf)
-                } 
-                alt={`${pdfSelected && dxfSelected ? activePreview.toUpperCase() : (pdfSelected ? 'PDF' : 'DXF')} Vorschau`}
-                className="w-full h-auto object-contain"
-              />
+              <div 
+                className="transition-transform duration-100 ease-out"
+                style={{
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                }}
+              >
+                <div className="shadow-lg rounded-lg overflow-hidden border border-border bg-card">
+                  <img 
+                    src={
+                      pdfSelected && dxfSelected 
+                        ? (activePreview === 'pdf' ? previewPdf : previewDxf)
+                        : (pdfSelected ? previewPdf : previewDxf)
+                    } 
+                    alt={`${pdfSelected && dxfSelected ? activePreview.toUpperCase() : (pdfSelected ? 'PDF' : 'DXF')} Vorschau`}
+                    className="max-h-[70vh] w-auto object-contain select-none"
+                    draggable={false}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>
