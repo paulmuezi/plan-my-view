@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import MapView from "@/components/MapView";
 import SettingsPanel from "@/components/SettingsPanel";
+import PreviewPanel from "@/components/PreviewPanel";
 
 const Editor = () => {
   return (
@@ -8,7 +9,10 @@ const Editor = () => {
       <Header />
       
       <main className="flex-1 flex overflow-hidden pt-14">
-        <MapView />
+        <div className="relative flex-1">
+          <MapView />
+          <PreviewPanel />
+        </div>
         <SettingsPanel />
       </main>
     </div>

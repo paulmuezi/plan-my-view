@@ -24,9 +24,14 @@ const getBasePrice = (format: "A4" | "A3" | "A2") => {
 const SettingsPanel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { paperFormat, setPaperFormat, orientation, setOrientation, scale, setScale, pinPosition, address } = useMapSettings();
-  const [pdfSelected, setPdfSelected] = useState(true);
-  const [dxfSelected, setDxfSelected] = useState(false);
+  const { 
+    paperFormat, setPaperFormat, 
+    orientation, setOrientation, 
+    scale, setScale, 
+    pinPosition, address,
+    pdfSelected, setPdfSelected,
+    dxfSelected, setDxfSelected
+  } = useMapSettings();
 
   const basePrice = getBasePrice(paperFormat);
   const totalPrice = (pdfSelected && dxfSelected) ? basePrice + 10 : basePrice;

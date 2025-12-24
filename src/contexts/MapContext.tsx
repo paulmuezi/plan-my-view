@@ -20,6 +20,10 @@ interface MapContextType {
   setOrientation: (ori: Orientation) => void;
   scale: Scale;
   setScale: (scale: Scale) => void;
+  dxfSelected: boolean;
+  setDxfSelected: (selected: boolean) => void;
+  pdfSelected: boolean;
+  setPdfSelected: (selected: boolean) => void;
 }
 
 const MapContext = createContext<MapContextType | undefined>(undefined);
@@ -30,6 +34,8 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
   const [paperFormat, setPaperFormat] = useState<PaperFormat>("A4");
   const [orientation, setOrientation] = useState<Orientation>("Quer");
   const [scale, setScale] = useState<Scale>("1:1000");
+  const [dxfSelected, setDxfSelected] = useState(false);
+  const [pdfSelected, setPdfSelected] = useState(true);
 
   return (
     <MapContext.Provider value={{
@@ -42,7 +48,11 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
       orientation,
       setOrientation,
       scale,
-      setScale
+      setScale,
+      dxfSelected,
+      setDxfSelected,
+      pdfSelected,
+      setPdfSelected
     }}>
       {children}
     </MapContext.Provider>
