@@ -380,7 +380,18 @@ const Checkout = () => {
 
       <main className="flex-1 flex overflow-hidden pt-14">
         {/* Preview Section - Left */}
-        <div className="flex-1 flex flex-col items-center justify-center overflow-auto p-6 relative">
+        <div className="flex-1 flex flex-col overflow-auto p-6 relative">
+          {/* Back Button - Top Left */}
+          <button 
+            onClick={() => navigate("/editor")}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 self-start"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Zurück zum Editor
+          </button>
+
+          {/* Preview Card - Centered */}
+          <div className="flex-1 flex items-center justify-center">
           {/* Preview Card */}
           <div className="max-w-lg w-full shadow-lg rounded-lg overflow-hidden border border-border bg-card">
             {!pdfSelected && !dxfSelected ? (
@@ -398,6 +409,7 @@ const Checkout = () => {
                 className="w-full h-auto object-contain"
               />
             )}
+          </div>
           </div>
 
           {/* Elegant Toggle - fixed at bottom, only show when both formats selected */}
@@ -433,15 +445,6 @@ const Checkout = () => {
 
         {/* Payment Section - Right */}
         <div className="w-80 bg-card border-l border-border flex flex-col">
-          <div className="p-3 border-b border-border">
-            <button 
-              onClick={() => navigate("/editor")}
-              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Zurück zum Editor
-            </button>
-          </div>
 
           <div className="p-3 flex-1 overflow-auto space-y-4">
             <h2 className="text-sm font-semibold">Bestellung abschließen</h2>
