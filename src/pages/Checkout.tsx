@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/services/emailService";
 import { createPaymentIntent, processPayment, eurosToCents, PaymentMethod } from "@/services/paymentService";
 import { saveOrder } from "@/services/orderService";
 import Header from "@/components/Header";
-import previewA4 from "@/assets/preview-a4.png";
+import previewPdf from "@/assets/preview-pdf.png";
+import previewDxf from "@/assets/preview-dxf.png";
 
 interface CheckoutState {
   paperFormat: string;
@@ -377,13 +379,54 @@ const Checkout = () => {
 
       <main className="flex-1 flex overflow-hidden pt-14">
         {/* Preview Section - Left */}
-        <div className="flex-1 flex items-center justify-center overflow-auto">
-          <div className="max-w-lg w-full shadow-lg rounded-lg overflow-hidden border border-border">
-            <img 
-              src={previewA4} 
-              alt="Vorschau" 
-              className="w-full h-auto object-contain"
-            />
+        <div className="flex-1 flex items-center justify-center overflow-auto p-6">
+          <div className="max-w-lg w-full shadow-lg rounded-lg overflow-hidden border border-border bg-card">
+            {pdfSelected && dxfSelected ? (
+              <Tabs defaultValue="pdf" className="w-full">
+                <div className="p-3 border-b border-border bg-muted/50">
+                  <TabsList className="h-8">
+                    <TabsTrigger value="pdf" className="text-sm px-4 py-1.5">PDF</TabsTrigger>
+                    <TabsTrigger value="dxf" className="text-sm px-4 py-1.5">DXF</TabsTrigger>
+                  </TabsList>
+                </div>
+                <TabsContent value="pdf" className="m-0">
+                  <img 
+                    src={previewPdf} 
+                    alt="PDF Vorschau" 
+                    className="w-full h-auto object-contain"
+                  />
+                </TabsContent>
+                <TabsContent value="dxf" className="m-0">
+                  <img 
+                    src={previewDxf} 
+                    alt="DXF Vorschau" 
+                    className="w-full h-auto object-contain"
+                  />
+                </TabsContent>
+              </Tabs>
+            ) : pdfSelected ? (
+              <>
+                <div className="p-3 border-b border-border bg-muted/50">
+                  <span className="text-sm font-medium text-muted-foreground">Vorschau PDF</span>
+                </div>
+                <img 
+                  src={previewPdf} 
+                  alt="PDF Vorschau" 
+                  className="w-full h-auto object-contain"
+                />
+              </>
+            ) : (
+              <>
+                <div className="p-3 border-b border-border bg-muted/50">
+                  <span className="text-sm font-medium text-muted-foreground">Vorschau DXF</span>
+                </div>
+                <img 
+                  src={previewDxf} 
+                  alt="DXF Vorschau" 
+                  className="w-full h-auto object-contain"
+                />
+              </>
+            )}
           </div>
         </div>
 
