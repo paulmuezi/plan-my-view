@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/services/emailService";
@@ -14,6 +13,7 @@ import { saveOrder } from "@/services/orderService";
 import Header from "@/components/Header";
 import previewPdf from "@/assets/preview-pdf.png";
 import previewDxf from "@/assets/preview-dxf.png";
+import { cn } from "@/lib/utils";
 
 interface CheckoutState {
   paperFormat: string;
@@ -63,6 +63,7 @@ const Checkout = () => {
   const state = location.state as CheckoutState | null;
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activePreview, setActivePreview] = useState<'pdf' | 'dxf'>('pdf');
   
   // Card details state
   const [cardDetails, setCardDetails] = useState<CardDetails>({
@@ -379,53 +380,53 @@ const Checkout = () => {
 
       <main className="flex-1 flex overflow-hidden pt-14">
         {/* Preview Section - Left */}
-        <div className="flex-1 flex items-center justify-center overflow-auto p-6">
+        <div className="flex-1 flex flex-col items-center justify-center overflow-auto p-6 gap-4">
+          {/* Elegant Toggle - only show when both formats selected */}
+          {pdfSelected && dxfSelected && (
+            <div className="inline-flex items-center gap-1 p-1 bg-muted rounded-full">
+              <button
+                onClick={() => setActivePreview('pdf')}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
+                  activePreview === 'pdf' 
+                    ? "bg-background text-foreground shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                PDF
+              </button>
+              <button
+                onClick={() => setActivePreview('dxf')}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
+                  activePreview === 'dxf' 
+                    ? "bg-background text-foreground shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <FileCode className="w-3.5 h-3.5" />
+                DXF
+              </button>
+            </div>
+          )}
+
+          {/* Preview Card */}
           <div className="max-w-lg w-full shadow-lg rounded-lg overflow-hidden border border-border bg-card">
-            {pdfSelected && dxfSelected ? (
-              <Tabs defaultValue="pdf" className="w-full">
-                <div className="p-3 border-b border-border bg-muted/50">
-                  <TabsList className="h-8">
-                    <TabsTrigger value="pdf" className="text-sm px-4 py-1.5">PDF</TabsTrigger>
-                    <TabsTrigger value="dxf" className="text-sm px-4 py-1.5">DXF</TabsTrigger>
-                  </TabsList>
-                </div>
-                <TabsContent value="pdf" className="m-0">
-                  <img 
-                    src={previewPdf} 
-                    alt="PDF Vorschau" 
-                    className="w-full h-auto object-contain"
-                  />
-                </TabsContent>
-                <TabsContent value="dxf" className="m-0">
-                  <img 
-                    src={previewDxf} 
-                    alt="DXF Vorschau" 
-                    className="w-full h-auto object-contain"
-                  />
-                </TabsContent>
-              </Tabs>
-            ) : pdfSelected ? (
-              <>
-                <div className="p-3 border-b border-border bg-muted/50">
-                  <span className="text-sm font-medium text-muted-foreground">Vorschau PDF</span>
-                </div>
-                <img 
-                  src={previewPdf} 
-                  alt="PDF Vorschau" 
-                  className="w-full h-auto object-contain"
-                />
-              </>
+            {!pdfSelected && !dxfSelected ? (
+              <div className="p-8 text-center text-muted-foreground">
+                Keine Vorschau verfügbar
+              </div>
             ) : (
-              <>
-                <div className="p-3 border-b border-border bg-muted/50">
-                  <span className="text-sm font-medium text-muted-foreground">Vorschau DXF</span>
-                </div>
-                <img 
-                  src={previewDxf} 
-                  alt="DXF Vorschau" 
-                  className="w-full h-auto object-contain"
-                />
-              </>
+              <img 
+                src={
+                  pdfSelected && dxfSelected 
+                    ? (activePreview === 'pdf' ? previewPdf : previewDxf)
+                    : (pdfSelected ? previewPdf : previewDxf)
+                } 
+                alt={`${pdfSelected && dxfSelected ? activePreview.toUpperCase() : (pdfSelected ? 'PDF' : 'DXF')} Vorschau`}
+                className="w-full h-auto object-contain"
+              />
             )}
           </div>
         </div>
