@@ -11,8 +11,8 @@ import { sendOrderConfirmationEmail, generateOrderId, OrderEmailData } from "@/s
 import { createPaymentIntent, processPayment, eurosToCents, PaymentMethod } from "@/services/paymentService";
 import { saveOrder } from "@/services/orderService";
 import Header from "@/components/Header";
-import previewPdf from "@/assets/preview-pdf.png";
-import previewDxf from "@/assets/preview-dxf.png";
+import previewPdf from "@/assets/preview-checkout-pdf.png";
+import previewDxf from "@/assets/preview-checkout-dxf.png";
 import { cn } from "@/lib/utils";
 
 interface CheckoutState {
